@@ -64,6 +64,9 @@ name = "MassMachine"
 [[lean_lib]]
 name = "SlowMachine"
 
+[[lean_lib]]
+name = "PairMachine"
+
 [[lean_exe]]
 name = "building"
 root = "Main"

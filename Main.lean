@@ -6,6 +6,7 @@ import FlipMachine
 import FindMachine
 import LandMachine
 import StepMachine
+import PairMachine
 open Building Building.Spot
 
 /-- Every other entry (the cells a particle can reach on this tick). -/
@@ -26,6 +27,24 @@ def plainWalk (t : Nat) : List Int :=
 def runBack : Nat → Row → Row
   | 0, row => row
   | n + 1, row => runBack n (untick row)
+
+/-- The tickets of each pair-cell: rows are particle 1's places, columns particle 2's. -/
+def pairTickets (g : Grid) : List (List Int) :=
+  g.map fun p => List.zipWith (fun a b => cellSize a + cellSize b) p.1 p.2
+
+/-- `n` rounds: particle 1 ticks, then particle 2. -/
+def pairRun : Nat → Grid → Grid
+  | 0, g => g
+  | n + 1, g => pairRun n (tick2 (tick1 g))
+
+/-- `n` rounds in which only particle 1 moves (particle 2 left frozen). -/
+def frozenRun : Nat → Grid → Grid
+  | 0, g => g
+  | n + 1, g => frozenRun n (tick1 g)
+
+/-- Every other row and column (the places reachable on this tick). -/
+def everyOtherGrid (t : List (List Int)) : List (List Int) :=
+  ((List.range t.length).filterMap fun j => if j % 2 == 0 then t[j]? else none).map everyOther
 
 /-- Write an address the usual way, biggest place first: the lowest floor first, the
 ground floor last. -/
@@ -276,3 +295,20 @@ def main : IO Unit := do
   IO.println s!"  landing after 8 ticks: 8 coin flips {(List.range 8).map (fun n => if stepCoin n then 1 else 0)} pick ticket {k} of 256"
   IO.println s!"    it lands in cell {(cell : Int) - 8}, which holds {cellSize (t8.getD cell (0, 0))} of the 256 tickets"
   IO.println s!"  every chain of 8 flips checked: each cell is landed in by exactly as many chains as it has tickets: {landCounts 8 == ticketCounts 8}"
+
+  IO.println ""
+  IO.println "== Two particles on a line: one pair-cell for each pair of places, four arrows each =="
+  IO.println "  start: the linked pair (1 heading right and 2 heading left, minus the reverse), both at place 0"
+  let g4 := pairRun 4 linked
+  let tbl := pairTickets g4
+  IO.println "  tickets after 4 rounds, rows = particle 1 at -4, -2, 0, 2, 4; columns = particle 2 at the same places:"
+  for r in everyOtherGrid tbl do
+    IO.println s!"    {r}"
+  let row2 := tbl.getD 6 []
+  IO.println s!"  if particle 1 lands at +2, particle 2 lands at -2 in {row2.getD 2 0} of {row2.foldl (· + ·) 0} tickets: they tend to fly apart"
+  IO.println s!"  total tickets: {totalG g4}   (2 to start, doubled by each of the 8 particle-ticks: 2 x 2^8 = {2 * 2 ^ 8})"
+  IO.println s!"  particle 1's own tickets, particle 2 moving:  {everyOther (marg1 g4)}"
+  IO.println s!"  particle 1's own tickets, particle 2 frozen:  {everyOther ((marg1 (frozenRun 4 linked)).map (· * 16))}   (x 16, the 4 floors particle 2 didn't climb)"
+  IO.println "  (the same: nothing done to particle 2 reaches particle 1, so the link carries no message)"
+  IO.println s!"  who moves first doesn't matter (4 rounds, every arrow compared): {decide (pairRun 4 linked = (List.range 4).foldl (fun g _ => tick1 (tick2 g)) linked)}"
+  IO.println s!"  room: 9 places for each particle need {g4.length * (g4.headD ([], [])).1.length} pair-cells, not {2 * g4.length} cells"

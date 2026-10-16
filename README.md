@@ -2,6 +2,8 @@
 
 A proof that runs, written in Lean 4 (version 4.35.0). The machines use only whole numbers; Mathlib, the standard library of checked mathematics, serves as the referee.
 
+**Where the files live:** the GitHub repository [laboo/assembly-lean](https://github.com/laboo/assembly-lean), together with the compiled library. The Claude project keeps only this README.
+
 **Which way is up** (the same as in the model): up means finer, down means coarser. The **ground floor** holds a spot's ones digit. A whole-number spot's address uses the ground floor and the floors beneath it (finitely many); the finer floors above the ground floor go on forever. Moving something down a floor turns it three-eighths of a lap and grows it; moving it up a floor shrinks it back. The climbing machines start just above the ground floor and work up, one finer floor at a time.
 
 **Piece 1: the ground floor's addresses.** What Lean has checked (in `Building.lean`, 42 theorems, no gaps):

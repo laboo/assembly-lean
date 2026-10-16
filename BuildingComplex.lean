@@ -78,7 +78,7 @@ theorem toC_value (ds : List Bool) : (value ds).toC = penney ds := by
 /-- **The 0-and-1 machine agrees with Mathlib's complex plane.**
 
 * every point `x + y·i` with whole-number `x` and `y` has an address,
-* two addresses that land on the same point are the same (top-floor zeros aside),
+* two addresses that land on the same point are the same (spare zeros on the bottom floors aside),
 * adding addresses lands on Mathlib's sum,
 * multiplying addresses lands on Mathlib's product. -/
 theorem building_agrees_with_complex :

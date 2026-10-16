@@ -10,15 +10,18 @@ This finishes the translator from the mission: anything in the complex plane can
 carried into the building, and adding and multiplying in the building land exactly on
 the complex plane's answers, with nothing added or lost.
 
-* A **full address** holds one mirror digit on every floor: finitely many above the
-  point, endlessly many below. Above the point, arithmetic writes the tidy plain 0/1
-  spelling.
+* A **full address** holds one mirror digit on every floor: finitely many whole-number
+  floors (the ground floor and the floors beneath it) and endlessly many finer floors
+  above the ground floor. On the whole-number floors, arithmetic writes the tidy plain
+  0/1 spelling.
 * **Every point of Mathlib's complex plane has a full address**: round the point to the
-  nearest whole-number spot (its floors above the point), and the small remainder,
-  never more than half a step away in each direction, gets an endless address.
+  nearest whole-number spot (its whole-number floors), and the small remainder, never
+  more than half a step away in each direction, gets an endless address on the finer
+  floors.
 * **Adding and multiplying full addresses**, using only the machines from pieces 1–3,
-  land exactly on Mathlib's sum and product. When an endless answer comes out written
-  six or twelve floors higher, those top floors simply move above the point.
+  land exactly on Mathlib's sum and product. When a climbing machine's answer must be
+  moved six or twelve floors down, its first few finer floors simply move down to the
+  whole-number floors.
 -/
 
 namespace Building
@@ -47,9 +50,9 @@ theorem evalE_zeroE : evalE zeroE = 0 := by
 theorem fullValue_zero : fullValue Full.zero = 0 := by
   simp only [fullValue, Full.zero, valueM, toC_zero, evalE_zeroE, add_zero]
 
-/-! ## Reading an endless address some floors higher -/
+/-! ## Moving an endless address some floors down -/
 
-/-- Reading `j` floors higher: the first `j` floors become a whole-number spot, and the
+/-- Moving `j` floors down: the first `j` finer floors become a whole-number spot, and the
 rest stays endless. -/
 theorem twistC_pow_mul_evalE (t : Endless) (j : ℕ) :
     twistC ^ j * evalE t = (horner t j).toC + evalE (fun n => t (n + j)) := by
@@ -129,8 +132,9 @@ theorem fullValue_mul (A B : Full) : fullValue (fullMul A B) = fullValue A * ful
 
 /-! ## Every point of the plane has a full address -/
 
-/-- The full address of a point: round it to the nearest whole-number spot for the floors
-above the point, and give the small remainder an endless address. -/
+/-- The full address of a point: round it to the nearest whole-number spot for the
+whole-number floors, and give the small remainder an endless address on the finer
+floors. -/
 noncomputable def fullOf (z : ℂ) : Full :=
   ⟨plainM (address ⟨round z.re, round z.im⟩),
     endlessAddress (z - (⟨round z.re, round z.im⟩ : Spot).toC)⟩

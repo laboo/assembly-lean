@@ -5,8 +5,8 @@ import StreamMachine
 
 The mirror image of a spot keeps its east part and reverses its north part.
 The mirrored twist, `−1 − i`, is the twist turned one quarter turn (`i · b`).
-So flipping an address needs no carrying at all: on floor `j` above the point, mirror
-the digit and turn it `j` more quarter turns. Plain 0s and 1s flip into exactly the five
+So flipping an address needs no carrying at all: on the whole-number floor `j` floors
+below the ground floor, mirror the digit and turn it `j` more quarter turns. Plain 0s and 1s flip into exactly the five
 mirror digits (0, or a 1 turned `j` quarter turns), which is where the mirror digits come
 from.
 
@@ -84,15 +84,16 @@ end MDigit
 
 open MDigit
 
-/-! ## Flipping addresses above the point -/
+/-! ## Flipping the whole-number floors of an address -/
 
-/-- Read a list of mirror digits, ground floor first, as a whole-number spot. -/
+/-- Read a list of mirror digits, ground floor first and then each floor beneath it, as a
+whole-number spot. -/
 def valueM : List MDigit → Spot
   | [] => 0
   | d :: ds => d.toSpot + b * valueM ds
 
-/-- Flip an address, the bottom of the list sitting on floor `j`: mirror each digit and
-turn it one more quarter turn per floor. -/
+/-- Flip an address whose first digit sits `j` floors below the ground floor: mirror each
+digit and turn it one more quarter turn per floor down. -/
 def flipFrom : Nat → List MDigit → List MDigit
   | _, [] => []
   | j, d :: ds => d.flip.turnN (j % 4) :: flipFrom (j + 1) ds
@@ -122,15 +123,15 @@ theorem valueM_flipFrom (j : Nat) (ds : List MDigit) :
     simp only [ipow]
     ext <;> simp <;> grind
 
-/-- Flip a whole address (bottom digit on the ground floor). -/
+/-- Flip a whole address (first digit on the ground floor). -/
 def flipWhole (ds : List MDigit) : List MDigit := flipFrom 0 ds
 
 theorem valueM_flipWhole (ds : List MDigit) : valueM (flipWhole ds) = (valueM ds).flip := by
   rw [flipWhole, valueM_flipFrom]
   simp only [ipow]; ext <;> simp
 
-/-- **The colleague's lead, checked.** Flip a plain 0/1 address, and floor `k` holds either 0
-or a 1 turned `k` quarter turns: plain digits flip into exactly the mirror digits. -/
+/-- **The colleague's lead, checked.** Flip a plain 0/1 address, and the floor `k` floors
+down holds either 0 or a 1 turned `k` quarter turns: plain digits flip into exactly the mirror digits. -/
 theorem flip_plain_digits (ds : List Bool) (j k : Nat) :
     (flipFrom j (ds.map ofBool)).getD k .zero =
       if ds.getD k false then one.turnN ((j + k) % 4) else .zero := by

@@ -50,7 +50,7 @@ theorem findP_eq_horner (ap : Approx) (k : Nat) : findP ap k = horner (findE ap)
 
 /-! ## Any point in the plane -/
 
-/-- Approximations of the point moved up `K` floors (shrunk and turned by `K` twists),
+/-- Approximations of the point moved up `K` floors (shrunk and turned back by `K` twists),
 worked out from approximations of the point itself. -/
 def shiftApprox (ap : Approx) (K : Nat) : Approx :=
   fun m => (spow cbar K * (ap m).1, (ap m).2 + K)
@@ -62,9 +62,10 @@ def findShift (ap : Approx) : Nat :=
   let M := G.re.natAbs + G.im.natAbs + 2 ^ (ap 0).2
   2 * ((3 * M).log2 + 1)
 
-/-- **The full address of any point of the plane**: move the point up until it sits inside
-the star, find its endless address, then move those first floors back down above the
-point. -/
+/-- **The full address of any point of the plane**: move the point up (shrinking it) until
+it sits inside the star, find its endless address by climbing, then move the address back
+down the same number of floors, so its first few finer floors become whole-number
+floors. -/
 def findFull (ap : Approx) : Full :=
   let K := findShift ap
   let t := findE (shiftApprox ap K)

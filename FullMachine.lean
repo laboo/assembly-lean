@@ -5,14 +5,16 @@ import FlipMachine
 # Full addresses (plain Lean, no math library)
 
 A **full address** holds one mirror digit (0, 1, −1, i or −i) on every floor:
-finitely many floors above the point and endlessly many below. There is one digit
-story everywhere. Above the point, every address also has a **tidy spelling** in plain
-0s and 1s (Penney's, piece 1), and that is what arithmetic writes there.
+finitely many whole-number floors (the ground floor and the floors beneath it) and
+endlessly many finer floors above the ground floor. There is one digit story everywhere.
+On the whole-number floors, every address also has a **tidy spelling** in plain 0s and 1s
+(Penney's, piece 1), and that is what arithmetic writes there.
 
-Adding and multiplying full addresses uses only the machines already built:
-the plain 0/1 adder and multiplier above the point (after tidying), and the endless
-adder and multiplier below it. When an endless answer comes out written some floors higher,
-those top floors simply move above the point.
+Adding and multiplying full addresses uses only the machines already built: the plain
+0/1 adder and multiplier on the whole-number floors (after tidying), and the climbing
+adder and multiplier on the finer floors. When a climbing machine's answer comes out
+shifted some floors, its first few finer floors simply move down to the whole-number
+floors.
 
 The proof that this lands on Mathlib's sum and product, everywhere in the plane,
 is in `BuildingFull.lean`.
@@ -20,13 +22,14 @@ is in `BuildingFull.lean`.
 
 namespace Building
 
-/-- A full address: mirror digits on every floor, finitely many above the point
-(ground floor first) and endlessly many below. -/
+/-- A full address: mirror digits on every floor, finitely many whole-number floors
+(`whole`, ground floor first, then each floor beneath it) and endlessly many finer floors
+above the ground floor (`tail`). -/
 structure Full where
   whole : List MDigit
   tail : Endless
 
-/-- The tidy plain 0/1 spelling of the floors above the point. -/
+/-- The tidy plain 0/1 spelling of the whole-number floors. -/
 def tidy (ds : List MDigit) : List Bool := address (valueM ds)
 
 /-- Plain 0s and 1s, written as mirror digits. -/
@@ -54,12 +57,14 @@ def zeroE : Endless := fun _ => .zero
 /-- Zero, as a full address. -/
 def Full.zero : Full := ⟨[], zeroE⟩
 
-/-- An endless address read `j` floors higher: its first `j` floors move above the point
-(rewritten in plain 0s and 1s), and the rest stays below. -/
+/-- An endless address moved `j` floors down (the name `lift` means lifting digits out of
+the endless part): its first `j` finer floors become whole-number floors (rewritten in
+plain 0s and 1s), and the rest stay finer floors. -/
 def lift (t : Endless) (j : Nat) : Full := ⟨plainM (address (horner t j)), fun n => t (n + j)⟩
 
-/-- **Adding full addresses.** Above the point: the plain 0/1 adder. Below the point: the
-endless adder, whose answer comes out six floors higher, so its top six floors move up. -/
+/-- **Adding full addresses.** On the whole-number floors: the plain 0/1 adder. On the
+finer floors: the climbing adder, whose answer must be moved six floors down, so its first
+six finer floors move down to the whole-number floors. -/
 def fullAddH (H : Nat) (A B : Full) : Full :=
   let E := addE A.tail B.tail
   let arr := memoArr E (H + 6)
@@ -77,15 +82,17 @@ def sumFullH : Nat → List Full → Full
 
 def sumFull (As : List Full) : Full := sumFullH horizon As
 
-/-- One copy of the endless address `t`, lifted `j` floors, for every 1 in a plain address
-(starting at floor `j`). This is how a whole number multiplies an endless address. -/
+/-- One copy of the endless address `t` for every 1 in a plain address, moved down as many
+floors as that 1 sits below the ground floor (counting from floor `j`). This is how a whole
+number multiplies an endless address. -/
 def liftsOf : List Bool → Endless → Nat → List Full
   | [], _, _ => []
   | d :: ds, t, j => (if d then [lift t j] else []) ++ liftsOf ds t (j + 1)
 
 /-- **Multiplying full addresses**: (whole A + tail A) × (whole B + tail B), as four parts.
-Whole × whole: the plain 0/1 multiplier. Tail × tail: the endless multiplier, whose answer
-comes out twelve floors higher. Whole × tail: shifted copies of the tail, one per 1. -/
+Whole × whole: the plain 0/1 multiplier. Tail × tail: the climbing multiplier, whose
+answer must be moved twelve floors down. Whole × tail: copies of the tail moved down, one
+per 1. -/
 def fullMulH (H : Nat) (A B : Full) : Full :=
   let a := tidy A.whole
   let c := tidy B.whole
@@ -98,8 +105,9 @@ def fullMul (A B : Full) : Full := fullMulH horizon A B
 
 /-! ## The mirror flip of a full address -/
 
-/-- Flip an endless address: floor `n + 1` below the point is mirrored and turned
-three quarter turns per floor (the mirrored shrink is the shrink turned back a quarter). -/
+/-- Flip an endless address: the finer floor `n + 1` floors above the ground floor is
+mirrored and turned three quarter turns per floor, that is, back one quarter turn per floor
+(the mirrored shrink is the shrink turned back a quarter). -/
 def flipE (x : Endless) : Endless := fun n => (x n).flip.turnN ((3 * (n + 1)) % 4)
 
 /-- **The mirror image of a full address**, worked out floor by floor with no carrying. -/

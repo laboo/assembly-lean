@@ -8,20 +8,20 @@ import Mathlib.Analysis.Complex.Basic
 
 Everyday-language summary (for the author):
 
-* Below the point, the floors go on forever. An **endless address** hands over one
-  digit per floor, on demand. Its digits are the five **mirror digits**:
+* Above the ground floor, the finer floors go on forever. An **endless address** hands
+  over one digit per finer floor, on demand. Its digits are the five **mirror digits**:
   0, 1, −1, i and −i (zero, a step east or west, a step north or south).
 * Reading an endless address in Mathlib's complex plane means adding up
   digit × (one floor's shrink)^floor, forever. Lean checks that this always
   settles on one definite point.
 * **Every point of the unit disk has an endless address** (onto): at each floor
   one of the five mirror digits always keeps what's left within the disk.
-* **Adding two endless addresses, top floor first:** a machine reads one floor of
-  each address and writes one floor of the sum, never looking ahead. It remembers
-  only a small leftover, which is always one of 85 values (checked by running
-  through every case). The sum comes out written six floors higher; reading it six
-  floors lower gives exactly Mathlib's sum. Each written digit depends only on the
-  floors read so far.
+* **Adding two endless addresses, climbing one floor at a time:** a machine starts just
+  above the ground floor, reads one floor of each address and writes one floor of the
+  sum, never looking further up. It remembers only a small leftover, which is always one
+  of 85 values (checked by running through every case). The sum comes out shifted:
+  moved six floors down, what it writes is exactly Mathlib's sum. Each written digit
+  depends only on the floors read so far.
 -/
 
 namespace Building
@@ -262,8 +262,8 @@ theorem addE_identity (x y : Endless) (k : ℕ) :
       (-(c ^ (k + 6) * u) + c ^ (k + 1) * p *
         (1 + c * β + (c * β) ^ 2 + (c * β) ^ 3 + (c * β) ^ 4 + (c * β) ^ 5)) * hc
 
-/-- **Adding two endless addresses, top floor first, lands on Mathlib's sum**:
-the written address, read six floors lower, is exactly `x + y`. -/
+/-- **Adding two endless addresses, climbing one floor at a time, lands on Mathlib's sum**:
+the written address, moved six floors down, is exactly `x + y`. -/
 theorem addE_correct (x y : Endless) : twistC ^ 6 * evalE (addE x y) = evalE x + evalE y := by
   have h : evalE (addE x y) = shrink ^ 6 * (evalE x + evalE y) := by
     apply evalE_eq_of_bounded _ (fun k => shrink ^ 6 * (partialE x k + partialE y k))
@@ -295,7 +295,7 @@ theorem addE_correct_8i (x y : Endless) : 8 * I * evalE (addE x y) = evalE x + e
 * every endless address of mirror digits names exactly one point of Mathlib's plane
   (the reading settles),
 * every point of the unit disk has such an address,
-* the top-floor-first adder writes the sum one floor at a time, never looking ahead,
+* the climbing adder writes the sum one floor at a time, never looking further up,
   holding one of only 85 leftovers, and lands exactly on Mathlib's sum. -/
 theorem piece_two :
     (∀ x : Endless, Tendsto (partialE x) atTop (𝓝 (evalE x))) ∧

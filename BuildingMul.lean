@@ -6,8 +6,8 @@ import MulMachine
 
 Everyday-language summary (for the author):
 
-* The multiplier in `MulMachine.lean` reads one floor of each endless address and
-  writes one floor of the product, never looking ahead.
+* The multiplier in `MulMachine.lean` climbs: on each finer floor it reads one digit of
+  each endless address and writes one digit of the product, never looking further up.
 * What decides each digit is a **leftover**: everything read so far, minus the product
   written so far, magnified to the current floor. Lean checks that the leftover always
   stays inside a small **four-pointed star** (`4·|east| − |north| ≤ 2` and
@@ -16,7 +16,8 @@ Everyday-language summary (for the author):
   an explicit star instead of a picture).
 * Because the leftover stays small while its floor gets finer and finer, the written
   product homes in on the true product: **−64 × the written product is exactly
-  Mathlib's `x · y`** (the product is written twelve floors higher).
+  Mathlib's `x · y`** (moving the written product twelve floors down multiplies it by
+  −64).
 -/
 
 namespace Building
@@ -364,8 +365,8 @@ theorem shrink_pow_twelve : shrink ^ 12 = -1 / 64 := by
   rw [show (I : ℂ) ^ 6 = (I ^ 2) ^ 3 by ring, I_sq]
   norm_num
 
-/-- **Multiplying two endless addresses, top floor first, lands on Mathlib's product**:
-the written product, read twelve floors lower, is exactly `x · y`. -/
+/-- **Multiplying two endless addresses, climbing one floor at a time, lands on Mathlib's
+product**: the written product, moved twelve floors down, is exactly `x · y`. -/
 theorem mulE_correct (x y : Endless) : evalE x * evalE y = -64 * evalE (mulE x y) := by
   have h : evalE (mulE x y) = shrink ^ 12 * (evalE x * evalE y) := by
     apply evalE_eq_of_bounded _ (fun k => shrink ^ 12 * partialE x k * partialE y k)
@@ -383,7 +384,7 @@ theorem mulE_correct (x y : Endless) : evalE x * evalE y = -64 * evalE (mulE x y
   rw [h, shrink_pow_twelve]
   ring
 
-/-- **Piece 3 in one statement.** The top-floor-first multiplier writes each digit from
+/-- **Piece 3 in one statement.** The climbing multiplier writes each digit from
 the floors read so far, keeps its leftover inside the four-pointed star, and lands
 exactly on Mathlib's product. -/
 theorem piece_three :

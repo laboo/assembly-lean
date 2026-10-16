@@ -7,7 +7,8 @@ import FindMachine
 import LandMachine
 open Building Building.Spot
 
-/-- Write an address the usual way: top floor first, ground floor last. -/
+/-- Write an address the usual way, biggest place first: the lowest floor first, the
+ground floor last. -/
 def showAddr (ds : List Bool) : String :=
   match trim ds with
   | [] => "0"
@@ -83,7 +84,7 @@ def range (n : Int) : List Int :=
   (List.range (2 * n.toNat + 1)).map fun (k : Nat) => (Int.ofNat k) - n
 
 def main : IO Unit := do
-  IO.println "== Addresses: one digit (0 or 1) per floor, top floor first =="
+  IO.println "== Addresses: one digit (0 or 1) per floor, lowest floor first, ground floor last =="
   let samples : List Spot :=
     [⟨0,0⟩, ⟨1,0⟩, ⟨2,0⟩, ⟨-1,0⟩, ⟨0,1⟩, ⟨0,-1⟩, ⟨-1,1⟩, ⟨2,1⟩, ⟨2,-1⟩, ⟨5,0⟩]
   for z in samples do
@@ -127,7 +128,7 @@ def main : IO Unit := do
   IO.println s!"  floors in the longest product address: {longest}"
 
   IO.println ""
-  IO.println "== Endless addresses: adding top floor first, one floor at a time =="
+  IO.println "== Endless addresses: adding by climbing, one finer floor at a time =="
   let x : Endless := fun _ => .one
   let y : Endless := scrambled 7
   IO.println s!"  x, first 12 floors:   {(List.range 12).map (fun n => showDigit (x n))}"
@@ -158,7 +159,7 @@ def main : IO Unit := do
   IO.println s!"  largest leftover coordinate seen: {biggest} (allowed: at most 5)"
 
   IO.println ""
-  IO.println "== Endless addresses: multiplying top floor first, one floor at a time =="
+  IO.println "== Endless addresses: multiplying by climbing, one finer floor at a time =="
   let mx := scrambled 3
   let my := scrambled 5
   let mp := mulE mx my
@@ -172,13 +173,13 @@ def main : IO Unit := do
   IO.println s!"  −64 × (written product), read the same way: {-64.0 * pr'} + {-64.0 * pi'} i"
 
   IO.println ""
-  IO.println "== Full addresses: whole floors in 0s and 1s, endless floors in mirror digits =="
+  IO.println "== Full addresses: whole-number floors in 0s and 1s, finer floors in mirror digits =="
   let fa : Full := ⟨plainM (address ⟨3, 2⟩), scrambled 3⟩
   let fb : Full := ⟨plainM (address ⟨-5, 4⟩), scrambled 8⟩
   let (ar, ai) := approxFull fa
   let (br, bi) := approxFull fb
-  IO.println s!"  A = {ar} + {ai} i   (above the point, tidy spelling: {showAddr (tidy fa.whole)})"
-  IO.println s!"  B = {br} + {bi} i   (above the point, tidy spelling: {showAddr (tidy fb.whole)})"
+  IO.println s!"  A = {ar} + {ai} i   (whole-number floors, tidy spelling: {showAddr (tidy fa.whole)})"
+  IO.println s!"  B = {br} + {bi} i   (whole-number floors, tidy spelling: {showAddr (tidy fb.whole)})"
   let (sr, si) := approxFull (fullAdd fa fb)
   IO.println s!"  A + B by the building: {sr} + {si} i"
   IO.println s!"  A + B in decimals:     {ar + br} + {ai + bi} i"
@@ -191,7 +192,7 @@ def main : IO Unit := do
   let ff := flipFull fa
   let (fr, fi) := approxFull ff
   IO.println s!"  flip of A by the building: {fr} + {fi} i   (A was {ar} + {ai} i)"
-  IO.println s!"  A's floors above the point, flipped: {(flipWhole fa.whole).map showDigit}"
+  IO.println s!"  A's whole-number floors, flipped (ground floor first): {(flipWhole fa.whole).map showDigit}"
   let (nr, ni) := approxFull (fullMulH 60 fa ff)
   IO.println s!"  A × flip(A) by the building: {nr} + {ni} i"
   IO.println s!"  A's squared size in decimals: {ar * ar + ai * ai}"
@@ -201,7 +202,7 @@ def main : IO Unit := do
   let fz := findFull sqrt2PlusThird
   let (zr, zi) := approxFull fz
   IO.println s!"  √2 + i/3 handed in as approximations; the building writes:"
-  IO.println s!"    floors below the point (tidy spelling): {showAddr (tidy fz.whole)}"
+  IO.println s!"    whole-number floors (tidy spelling): {showAddr (tidy fz.whole)}"
   IO.println s!"    first 12 finer floors: {(List.range 12).map (fun n => showDigit (fz.tail n))}"
   IO.println s!"    read back in decimals: {zr} + {zi} i   (√2 = 1.414214, 1/3 = 0.333333)"
   let fp := findFull (ratPoint 37 (-20) 7)

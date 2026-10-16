@@ -4,7 +4,8 @@ import Building
 # The stream machine (plain Lean, no math library)
 
 The runnable part of piece 2: the five mirror digits, endless addresses handed over
-one floor at a time, and the top-floor-first adder with its 85-leftover certificate.
+one floor at a time, and the climbing adder (it starts just above the ground floor and
+works up, one finer floor at a time) with its 85-leftover certificate.
 The proof that it lands on the complex plane's sum is in `BuildingStream.lean`.
 -/
 
@@ -12,7 +13,8 @@ namespace Building
 
 /-! ## 1. Mirror digits -/
 
-/-- The five mirror digits: 0, 1, −1, i, −i. -/
+/-- The five mirror digits: 0, 1, −1, i, −i. (Here `up` and `down` mean a step north or
+south on the floor, i and −i, not a move between floors.) -/
 inductive MDigit
   | zero | one | negOne | up | down
 deriving DecidableEq, Repr, Inhabited
@@ -33,16 +35,17 @@ theorem mem_all (d : MDigit) : d ∈ all := by cases d <;> simp [all]
 
 end MDigit
 
-/-- An endless address: the digit on floor `n + 1` below the point, for every `n`. -/
+/-- An endless address: the digit on the finer floor `n + 1` floors above the ground floor,
+for every `n`. -/
 abbrev Endless := Nat → MDigit
 
-/-! ## 4. Adding two endless addresses, top floor first
+/-! ## 4. Adding two endless addresses, climbing one floor at a time
 
-The machine below reads one floor of each address and writes one floor of the
-answer. It keeps a leftover `u`, a whole-number spot. At each floor:
-turn the leftover one floor (`b · u`), add the two digits just read, and write the
-mirror digit that leaves the smallest leftover, removing that digit's worth
-measured six floors up (`b⁶ = 8i`). -/
+The machine here starts just above the ground floor and climbs: on each finer floor it
+reads one digit of each address and writes one digit of the answer. It keeps a leftover
+`u`, a whole-number spot. At each floor: turn the leftover one floor (`b · u`), add the
+two digits just read, and write the mirror digit that leaves the smallest leftover,
+removing that digit's worth measured six floors down (`b⁶ = 8i`). -/
 
 /-- Six floors of twist: `b⁶ = 8i`. -/
 def twist6 : Spot := b * b * b * b * b * b
@@ -70,7 +73,9 @@ def addState (x y : Endless) : Nat → Spot
   | 0 => 0
   | k + 1 => (addStep (addState x y k) ((x k).toSpot + (y k).toSpot)).2
 
-/-- The sum, as an endless address, one floor at a time (written six floors higher). -/
+/-- The sum, as an endless address, one floor at a time. It comes out shifted: moved six
+floors down, what it writes is exactly the sum (a sum can be bigger than either number,
+so it needs room further down). -/
 def addE (x y : Endless) : Endless :=
   fun k => (addStep (addState x y k) ((x k).toSpot + (y k).toSpot)).1
 

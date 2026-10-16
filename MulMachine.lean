@@ -3,20 +3,21 @@ import StreamMachine
 /-!
 # The multiplying machine (plain Lean, no math library)
 
-Multiplies two endless addresses top floor first, writing one floor of the product
-for each floor it reads, never looking ahead. Unlike the adder it has to remember
+Multiplies two endless addresses climbing one floor at a time (starting just above the
+ground floor), writing one floor of the product for each floor it reads, never looking
+further up. Unlike the adder it has to remember
 everything read so far (the way long multiplication on paper does), but the part
 that decides each digit, the leftover, always stays inside a small four-pointed star:
 `4·|east| − |north| ≤ 2` and `4·|north| − |east| ≤ 2`, whose points reach `2/3` of a
 step along the diagonals.
 
-The product comes out written twelve floors higher: `−64 ×` the written product is the
-true product. The proof that it lands on Mathlib's product is in `BuildingMul.lean`.
+The product comes out shifted: moved twelve floors down, what it writes is the true
+product (`−64 ×` the written product is the true product). The proof that it lands on Mathlib's product is in `BuildingMul.lean`.
 -/
 
 namespace Building
 
-/-- How many floors higher the product is written. -/
+/-- How many floors the written product must be moved down to be the true product. -/
 def mulShift : Nat := 12
 
 /-- `−1 − i`: twice one floor's shrink. -/
@@ -27,8 +28,9 @@ def spow (z : Spot) : Nat → Spot
   | 0 => 1
   | n + 1 => z * spow z n
 
-/-- The first `k` floors of an endless address, read as one whole-number spot
-(the same Horner reading as the ground floor). -/
+/-- The first `k` finer floors of an endless address, moved `k` floors down so they become
+whole-number floors, read as one whole-number spot (the same Horner reading as the
+ground floor). -/
 def horner (x : Endless) : Nat → Spot
   | 0 => 0
   | k + 1 => b * horner x k + (x k).toSpot
@@ -56,7 +58,8 @@ def mulP (x y : Endless) : Nat → Spot
   | 0 => 0
   | k + 1 => b * mulP x y k + (starRule (vint x y k (mulP x y k)) (mulShift + k + 1)).toSpot
 
-/-- The product, as an endless address, one floor at a time (written twelve floors higher). -/
+/-- The product, as an endless address, one floor at a time (moved twelve floors down, it
+is the true product). -/
 def mulE (x y : Endless) : Endless :=
   fun k => starRule (vint x y k (mulP x y k)) (mulShift + k + 1)
 

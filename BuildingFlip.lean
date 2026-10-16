@@ -8,9 +8,10 @@ Everyday-language summary (for the author):
 * The mirror image of a point keeps its east part and reverses its north part
   (Mathlib calls it the conjugate).
 * The mirrored twist is the twist turned a quarter turn, so a full address is flipped
-  floor by floor with no carrying: above the point, floor `j`'s digit is mirrored and
-  turned `j` quarter turns; below the point, floor `n + 1`'s digit is mirrored and turned
-  back one quarter turn per floor.
+  floor by floor with no carrying: on the whole-number floors, the digit `j` floors below
+  the ground floor is mirrored and turned `j` quarter turns; on the finer floors, the
+  digit `n + 1` floors above the ground floor is mirrored and turned back one quarter turn
+  per floor.
 * Lean checks that this lands exactly on Mathlib's mirror image, and that **a full
   address times its flip is its squared size** (the number that, in the model's open
   question about landing, would set the odds).

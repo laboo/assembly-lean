@@ -11,6 +11,10 @@ Here the coin is handed in from outside (a rule giving one flip per floor), and 
 finer floor the flip picks the plain digit 0 or 1. The odds of the flips are left to the
 outside, as in the model, where how the coin flips get their odds is an open question.
 
+A note on direction, left open for the author: this program picks starting just above the
+ground floor and works up to finer and finer floors, which in the model's words is
+climbing, while the model describes landing as coming down.
+
 Checked here: **the spot it lands on is just the choices it made**. After `n` floors, no
 two different chains of flips land on the same spot, so the `2^n` chains land on `2^n`
 different spots. (How quickly the landing point is pinned down is in `BuildingLand.lean`.)

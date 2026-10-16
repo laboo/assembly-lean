@@ -9,6 +9,11 @@ Everyday-language summary (for the author):
 * The **twist** is the number `b = −1 + i`: going one floor down means
   "turn three-eighths of a lap and grow a little". Every spot gets an
   **address** made only of 0s and 1s, one digit per floor (Penney, 1965).
+* **Which way is up** (the same in every file, and the same as in the model): up means
+  finer, down means coarser. The **ground floor** holds a spot's ones digit. A whole-number
+  spot's address uses the ground floor and the floors beneath it; the finer floors above
+  the ground floor go on forever (pieces 2 onward). Moving something down a floor means
+  turning it three-eighths of a lap and growing it; moving it up a floor shrinks it back.
 * This file proves, and Lean checks, that:
   1. every spot has an address (nothing is left without a home),
   2. no two different addresses name the same spot (exactly one home each),
@@ -98,7 +103,8 @@ theorem b_pow_four : b * b * (b * b) = ⟨-4, 0⟩ := by decide
 
 /-! ## 3. Addresses: one digit (0 or 1) per floor
 
-An address is a list of digits, ground floor first (the last digit written).
+An address is a list of digits, ground floor first (the last digit written), then each
+floor beneath it in turn.
 `true` is the digit 1 and `false` the digit 0. -/
 
 /-- A digit as a spot: 1 or 0. -/
@@ -107,7 +113,7 @@ def dval (d : Bool) : Spot := ⟨if d then 1 else 0, 0⟩
 @[simp] theorem dval_re (d : Bool) : (dval d).re = if d then 1 else 0 := rfl
 @[simp] theorem dval_im (d : Bool) : (dval d).im = 0 := rfl
 
-/-- Read an address with something `top` still waiting upstairs:
+/-- Read an address with something (`top`) still waiting on the floors further down:
 digit + b·(digit + b·(digit + … + b·top)). -/
 def valueWith : List Bool → Spot → Spot
   | [], top => top
@@ -123,13 +129,13 @@ def value (ds : List Bool) : Spot := valueWith ds 0
 /-- Which digit a spot puts on the current floor: 1 exactly when east + north is odd. -/
 def digitOf (z : Spot) : Bool := decide ((z.re + z.im) % 2 = 1)
 
-/-- Peel off the current floor's digit and climb one floor: `(z − digit) / b`.
+/-- Peel off the current floor's digit and step down one floor: `(z − digit) / b`.
 The division is exact; it only ever halves even numbers. -/
 def peel (z : Spot) : Spot :=
   let d : Int := (z.re + z.im) % 2
   ⟨(z.im - z.re + d) / 2, (d - z.re - z.im) / 2⟩
 
-/-- The heart of it: every spot is its digit plus `b` times what's left upstairs. -/
+/-- The heart of it: every spot is its digit plus `b` times what's left further down. -/
 theorem digit_add_b_peel (z : Spot) : dval (digitOf z) + b * peel z = z := by
   by_cases h : (z.re + z.im) % 2 = 1 <;> ext <;> simp [digitOf, peel, h] <;> omega
 
@@ -138,12 +144,12 @@ def firstDigits : Nat → Spot → List Bool
   | 0, _ => []
   | n + 1, z => digitOf z :: firstDigits n (peel z)
 
-/-- What is still left upstairs after `n` floors. -/
+/-- What is still left further down after `n` floors. -/
 def leftover : Nat → Spot → Spot
   | 0, z => z
   | n + 1, z => leftover n (peel z)
 
-/-- Nothing is lost: the first `n` digits, plus what's left upstairs, give back the spot. -/
+/-- Nothing is lost: the first `n` digits, plus what's left further down, give back the spot. -/
 theorem valueWith_firstDigits (n : Nat) (z : Spot) :
     valueWith (firstDigits n z) (leftover n z) = z := by
   induction n generalizing z with
@@ -156,7 +162,7 @@ theorem valueWith_firstDigits (n : Nat) (z : Spot) :
 /-! ### Every spot runs out of digits
 
 Two floors at a time, the spot's size (its larger coordinate) roughly halves,
-so after enough floors nothing is left upstairs. -/
+so after enough floors nothing is left further down. -/
 
 /-- The larger of a spot's two coordinates, as a size. -/
 def size (z : Spot) : Nat := max z.re.natAbs z.im.natAbs
@@ -212,9 +218,9 @@ theorem runs_out (M : Nat) : ∀ z : Spot, z.re.natAbs ≤ M → z.im.natAbs ≤
       rw [this]
       exact ih _ h1 h2
 
-/-! ### Tidy addresses: no extra zeros on the top floors -/
+/-! ### Tidy addresses: no extra zeros on the bottom floors -/
 
-/-- Drop zeros on the highest floors (leading zeros, when the address is written out). -/
+/-- Drop spare zeros on the lowest floors (leading zeros, when the address is written out). -/
 def trim : List Bool → List Bool
   | [] => []
   | d :: ds =>
@@ -252,7 +258,7 @@ theorem value_address (z : Spot) : value (address z) = z := by
 
 /-! ### Exactly one address per spot -/
 
-/-- If two floors' worth of reading agree, the digits agree and so does everything above. -/
+/-- If two floors' worth of reading agree, the digits agree and so does everything further down. -/
 theorem digit_unique (d e : Bool) (u v : Spot) (h : dval d + b * u = dval e + b * v) :
     d = e ∧ u = v := by
   have hr := congrArg Spot.re h
@@ -274,7 +280,7 @@ theorem trim_of_value_zero (ds : List Bool) (h : value ds = 0) : trim ds = [] :=
     subst hd
     simp [trim, ih hv]
 
-/-- **No two different addresses name the same spot** (once top-floor zeros are dropped). -/
+/-- **No two different addresses name the same spot** (once spare zeros on the bottom floors are dropped). -/
 theorem trim_eq_of_value_eq (ds es : List Bool) (h : value ds = value es) :
     trim ds = trim es := by
   induction ds generalizing es with
@@ -333,9 +339,10 @@ theorem valueCols_columns (ds es : List Bool) :
       simp only [columns, valueCols, ih, value_cons]
       ext <;> simp <;> omega
 
-/-- Settle floor totals into 0/1 digits, passing a carry up one floor at a time.
-Every floor follows the same rule: add the carry, write the digit, peel the rest
-upstairs. When the floors run out, the last carry is written out with that same rule. -/
+/-- Settle floor totals into 0/1 digits, starting at the ground floor and passing a carry
+down one floor at a time. Every floor follows the same rule: add the carry, write the
+digit, pass the rest down. When the floors run out, the last carry is written out with
+that same rule. -/
 def settle : List Spot → Spot → List Bool
   | [], carry => address carry
   | col :: cols, carry => digitOf (col + carry) :: settle cols (peel (col + carry))
@@ -407,7 +414,7 @@ theorem columns_ok (ds es : List Bool) : ∀ col ∈ columns ds es, ColOK col :=
       · cases d <;> cases e <;> simp [ColOK]
       · exact ih es col h
 
-/-- The carries used on the way up, floor by floor. -/
+/-- The carries used on the way down, floor by floor. -/
 def carryTrail : List Spot → Spot → List Spot
   | [], carry => [carry]
   | col :: cols, carry => carry :: carryTrail cols (peel (col + carry))
@@ -431,7 +438,7 @@ theorem addA_finite (ds es : List Bool) :
 /-! ## 5. Multiplying addresses with nothing but the adder -/
 
 /-- The schoolbook way: for every 1 in the second address, add a copy of the first,
-moved up that many floors. -/
+moved down as many floors as that 1 sits below the ground floor. -/
 def mulA (ds : List Bool) : List Bool → List Bool
   | [] => []
   | e :: es => addA (if e then ds else []) (false :: mulA ds es)
@@ -447,8 +454,8 @@ theorem value_mulA (ds es : List Bool) : value (mulA ds es) = value ds * value e
 
 /-- **Piece 1 of the proof that runs.** Working only with 0/1 addresses, one digit per
 floor, and a carry that is always one of fifteen values, adding and multiplying land
-exactly on the addresses of the complex plane's answers (after dropping zeros on the
-top floors). -/
+exactly on the addresses of the complex plane's answers (after dropping spare zeros on
+the bottom floors). -/
 theorem ground_floor_lands (z w : Spot) :
     trim (addA (address z) (address w)) = address (z + w) ∧
     trim (mulA (address z) (address w)) = address (z * w) := by

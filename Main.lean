@@ -7,7 +7,26 @@ import FindMachine
 import LandMachine
 import StepMachine
 import PairMachine
+import Space3Machine
 open Building Building.Spot
+
+/-- One arrow of size 1 at the place (0, 0, 0). -/
+def start3 : Space := fun x y z =>
+  if x = 0 ∧ y = 0 ∧ z = 0 then ((1 : Spot), (0 : Spot)) else ((0 : Spot), (0 : Spot))
+
+/-- `n` ticks in three directions. -/
+def run3 : Nat → Space → Space
+  | 0, f => f
+  | n + 1, f => step3 (run3 n f)
+
+/-- The places with every coordinate between `-r` and `r`. -/
+def box (r : Nat) : List (Int × Int × Int) :=
+  let s : List Int := (List.range (2 * r + 1)).map fun (k : Nat) => (k : Int) - (r : Int)
+  s.flatMap fun x => s.flatMap fun y => s.map fun z => (x, y, z)
+
+/-- The total of the squared sizes over a box. -/
+def total3 (r : Nat) (f : Space) : Int :=
+  (box r).foldl (fun acc p => acc + cellSize (f p.1 p.2.1 p.2.2)) 0
 
 /-- Every other entry (the cells a particle can reach on this tick). -/
 def everyOther (l : List Int) : List Int :=
@@ -312,3 +331,13 @@ def main : IO Unit := do
   IO.println "  (the same: nothing done to particle 2 reaches particle 1, so the link carries no message)"
   IO.println s!"  who moves first doesn't matter (4 rounds, every arrow compared): {decide (pairRun 4 linked = (List.range 4).foldl (fun g _ => tick1 (tick2 g)) linked)}"
   IO.println s!"  room: 9 places for each particle need {g4.length * (g4.headD ([], [])).1.length} pair-cells, not {2 * g4.length} cells"
+
+  IO.println ""
+  IO.println "== Three directions: a free particle with no mass, two arrows per cell =="
+  IO.println "  each tick: turn, move east-west; turn, move north-south; turn, move up-down (one floor per turn)"
+  for t in [1, 2, 3] do
+    let f := run3 t start3
+    let inside := total3 t f
+    let wider := total3 (t + 1) f
+    IO.println s!"  after {t} ticks: tickets within {t} cells = {inside}, within {t + 1} cells = {wider}   (8^{t} = {(8 : Int) ^ t})"
+  IO.println "  (all the tickets stay within t cells in every direction: nothing outruns one cell per direction per tick)"

@@ -727,5 +727,247 @@ def run():
     print(f"wrote ShadowExamples.lean with {len(certs)} certificates")
 
 
+# ---------------------------------------------------------------- odds: the share of an object that casts a shadow
+#
+# The odds of a shadow outcome are the share of the object's possibilities that cast it.
+# Two kinds of possibility:
+#   - the object's own points (a point is picked evenly from the object; where does its shadow land?)
+#   - the tilt (the object is turned evenly at random; what kind of shadow does it cast?)
+# Answers are exact when the shape allows, and otherwise sampled and labelled with their error.
+
+import numpy as np
+from math import comb as _choose
+
+
+class Ball:
+    """The ball of radius one in n dimensions: its surface (solid=False) or the whole solid."""
+
+    def __init__(self, n, solid=False):
+        self.n, self.solid, self.dim = n, solid, n
+
+    def __repr__(self):
+        return f"{'solid ' if self.solid else ''}ball in {self.n}D"
+
+    def sample(self, k, rng):
+        v = rng.normal(size=(k, self.n))
+        v /= np.linalg.norm(v, axis=1, keepdims=True)
+        if self.solid:
+            v *= rng.random(k)[:, None] ** (1 / self.n)
+        return v
+
+    def shadow_power(self):
+        """On any line, this ball's shadow has density proportional to (1 - x^2)^power."""
+        return F(self.n - 1, 2) if self.solid else F(self.n - 3, 2)
+
+
+class Points:
+    """Finitely many equally likely points, for example an object's corners."""
+
+    def __init__(self, pts):
+        self.pts = [tuple(F(x) for x in p) for p in pts]
+        self.dim = len(self.pts[0])
+
+    def __repr__(self):
+        return f"{len(self.pts)} points in {self.dim}D"
+
+    def sample(self, k, rng):
+        arr = np.array([[float(x) for x in p] for p in self.pts])
+        return arr[rng.integers(len(self.pts), size=k)]
+
+
+class Together:
+    """One object made of several parts: a point of it is one point of each part, side by side."""
+
+    def __init__(self, *parts):
+        self.parts, self.dim = parts, sum(p.dim for p in parts)
+
+    def __repr__(self):
+        return " + ".join(repr(p) for p in self.parts) + " (one object)"
+
+    def sample(self, k, rng):
+        return np.hstack([p.sample(k, rng) for p in self.parts])
+
+
+class Past:
+    """A shadow outcome: the shadow on line number k lands at t or beyond."""
+
+    def __init__(self, k, t):
+        self.k, self.t = k, F(t)
+
+    def __call__(self, s):
+        return s[:, self.k] >= self.t
+
+
+def _ball_share_past(power, c):
+    """Share of a ball whose shadow on a unit line lands at c or beyond. Exact if power is a whole number."""
+    if isinstance(c, F):
+        c = max(F(-1), min(F(1), c))
+    if isinstance(c, F) and power.denominator == 1 and power >= 0:
+        p = int(power)
+
+        def G(x):     # antiderivative of (1 - x^2)^p
+            return sum(F(_choose(p, j) * (-1) ** j) * x ** (2 * j + 1) / (2 * j + 1) for j in range(p + 1))
+        return (G(F(1)) - G(c)) / (G(F(1)) - G(F(-1))), "exact"
+    # otherwise integrate sin^(2p+1) over the angle (smooth), to about twelve digits
+    c = float(c)
+    e = float(2 * power + 1)
+    phi = np.arccos(np.clip(c, -1, 1))
+
+    def integral(top, steps=20000):
+        x = np.linspace(0, top, steps + 1)
+        y = np.sin(x) ** e
+        return (top / steps) * (y[0] + y[-1] + 4 * y[1:-1:2].sum() + 2 * y[2:-1:2].sum()) / 3
+    return integral(phi) / integral(np.pi), "formula (decimal)"
+
+
+def share(obj, lines, region, samples=400_000, seed=0):
+    """The share of the object's points whose shadow on the given lines lands in the region.
+    lines: direction vectors in the object's space; the shadow of a point is its list of
+    positions along these lines. region: Past(k, t) or any function of the shadow array."""
+    lines = [[F(x) for x in u] for u in lines]
+    # exact: a ball and one "past" outcome
+    if isinstance(obj, Ball) and isinstance(region, Past):
+        u = lines[region.k]
+        q = sum(x * x for x in u)
+        r = _rational_sqrt(q)
+        c = region.t / r if r is not None else float(region.t) / float(q) ** 0.5
+        val, how = _ball_share_past(obj.shadow_power(), c)
+        return {"value": val, "how": how}
+    # exact: finitely many points, any region
+    if isinstance(obj, Points):
+        S = np.array([[sum(a * b for a, b in zip(u, p)) for u in lines] for p in obj.pts], dtype=object)
+        hits = region(S)
+        return {"value": F(int(sum(bool(h) for h in hits)), len(obj.pts)), "how": "exact"}
+    # otherwise: sample
+    rng = np.random.default_rng(seed)
+    X = obj.sample(samples, rng)
+    U = np.array([[float(x) for x in u] for u in lines])
+    hits = np.asarray(region(X @ U.T), dtype=bool)
+    v = hits.mean()
+    return {"value": v, "how": "sampled", "error": 2 * (v * (1 - v) / samples) ** 0.5}
+
+
+def shares(obj, lines, outcome, samples=400_000, seed=0):
+    """Share of each outcome, where outcome(shadow array) labels every point's shadow."""
+    lines_f = np.array([[float(x) for x in u] for u in lines])
+    if isinstance(obj, Points):
+        S = np.array([[sum(F(a) * b for a, b in zip(u, p)) for u in lines] for p in obj.pts], dtype=object)
+        labels = outcome(S)
+        cnt = Counter(tuple(l) if isinstance(l, np.ndarray) else l for l in labels)
+        return {k: (F(v, len(obj.pts)), "exact", 0) for k, v in cnt.items()}
+    rng = np.random.default_rng(seed)
+    labels = outcome(obj.sample(samples, rng) @ lines_f.T)
+    cnt = Counter(map(tuple, labels) if labels.ndim > 1 else labels.tolist())
+    out = {}
+    for k, v in cnt.items():
+        p = v / samples
+        out[k] = (p, "sampled", 2 * (p * (1 - p) / samples) ** 0.5)
+    return out
+
+
+def even_turn(n, rng, denom=400):
+    """A turn chosen evenly among all turns of n-space, made exact: the Cayley table of a random
+    turn, rounded to fractions (this moves it by about one part in a hundred thousand)."""
+    I = np.eye(n)
+    while True:
+        Q, R = np.linalg.qr(rng.normal(size=(n, n)))
+        Q = Q * np.sign(np.diag(R))
+        M = I + Q
+        if abs(np.linalg.det(M)) < 1e-3:
+            continue
+        A = (I - Q) @ np.linalg.inv(M)
+        Af = [[F(0)] * n for _ in range(n)]
+        for i in range(n):
+            for j in range(i + 1, n):
+                x = F((A[i, j] - A[j, i]) / 2).limit_denominator(denom)
+                Af[i][j], Af[j][i] = x, -x
+        return turn(Af)
+
+
+def shadow_kinds(V, tilts=500, seed=0):
+    """Turn the object evenly at random and report the share of each kind of shadow it casts."""
+    rng = np.random.default_rng(seed)
+    n = len(V[0])
+    cnt = Counter()
+    for _ in range(tilts):
+        cnt[describe_shape(outline(apply(shadow_map(even_turn(n, rng)), V)))] += 1
+    return {k: (v / tilts, 2 * ((v / tilts) * (1 - v / tilts) / tilts) ** 0.5) for k, v in cnt.most_common()}
+
+
+def _fmt(val, how, err=0):
+    if how == "exact":
+        return f"{str(val):>9} = {float(val):.4f}  exact"
+    if how == "sampled":
+        return f"{float(val):.4f} ± {err:.4f}  sampled"
+    return f"{float(val):.6f}  {how}"
+
+
+def run_odds():
+    print()
+    print("=" * 72)
+    print("ODDS: THE SHARE OF AN OBJECT THAT CASTS A SHADOW")
+    print("=" * 72)
+
+    print("\nA ball's shadow on a line, cut into five equal pieces: the share of the ball over each piece")
+    cuts = [F(-1), F(-3, 5), F(-1, 5), F(1, 5), F(3, 5), F(1)]
+    for n in [2, 3, 4, 5, 6]:
+        b = Ball(n)
+        past = [share(b, [[1] + [0] * (n - 1)], Past(0, c)) for c in cuts]
+        pieces = [past[i]["value"] - past[i + 1]["value"] for i in range(5)]
+        how = past[1]["how"]
+        txt = "  ".join(f"{str(p) if how == 'exact' else f'{float(p):.4f}':>7}" for p in pieces)
+        print(f"   surface of a ball in {n}D: {txt}   ({how})")
+
+    print("\nOne spin: a ball in 3D, read on a line at an angle to the spin's direction.")
+    print("Outcome 'up': the shadow lands past the spin direction's own shadow, taken from the other side.")
+    for c, s in [(1, 0), (F(4, 5), F(3, 5)), (F(3, 5), F(4, 5)), (0, 1), (F(-3, 5), F(4, 5)), (-1, 0)]:
+        line = [F(s), 0, F(c)]                         # a unit line whose angle has cosine c
+        r = share(Ball(3), [line], Past(0, -F(c)))
+        smp = share(Together(Ball(3)), [line], Past(0, -F(c)))
+        print(f"   cosine {str(F(c)):>5}: share up {_fmt(r['value'], r['how'])};"
+              f"  check by sampling {_fmt(smp['value'], smp['how'], smp['error'])}")
+
+    print("\nKinds of shadow over random tilts (each object turned evenly at random):")
+    for name, V, k in [("4D simplex", simplex(4), 1000), ("16-cell", cross(4), 1000),
+                       ("4D cube", cube(4), 300), ("24-cell", cell24(), 300)]:
+        print(f"   {name} ({k} tilts):")
+        for kind, (p, e) in shadow_kinds(V, k, seed=7).items():
+            print(f"      {p:.3f} ± {e:.3f}   {kind}")
+
+    print("\nThe 4D cube's corners as equally likely points: share whose shadow is a corner of the outline")
+    straight = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]
+    corner_first = [[F(1, 2), F(-1, 2), F(1, 2), F(-1, 2)], [F(1, 2), F(1, 2), F(-1, 2), F(-1, 2)],
+                    [F(1, 2), F(-1, 2), F(-1, 2), F(1, 2)]]
+    for name, P in [("straight on", straight), ("corner first", corner_first),
+                    ("random tilt", shadow_map(random_turn(4, random.Random(3))))]:
+        img = apply(P, cube(4))
+        cs = set(outline(img)["corner_points"])
+        on = F(sum(1 for p in img if p in cs), len(img))
+        print(f"   {name:>12}: {_fmt(on, 'exact')}   (outline has {len(cs)} corners)")
+
+    print("\nTwo balls taken as one object, shadowed on two lines at once (four shadow numbers).")
+    print("Outcomes read from the joint shadow (the rule from the linked-pair test);")
+    print("the two lines are at an angle whose cosine is 3/5 (about 53°):")
+    a = [F(0), F(0), F(1)]
+    b = [F(4, 5), F(0), F(3, 5)]
+    z = [F(0)] * 3
+
+    def pair(S):
+        sg = lambda x: np.where(x >= 0, 1, -1)
+        A = -sg(S[:, 0])
+        c = sg(S[:, 0]) * sg(S[:, 1])
+        B = sg(S[:, 2] + c * S[:, 3])
+        return np.stack([A, B], axis=1)
+    out = shares(Together(Ball(3), Ball(3)), [a + z, z + a, b + z, z + b], pair)
+    for k in sorted(out):
+        p, how, e = out[k]
+        print(f"   answers {('up' if k[0] > 0 else 'down'):>4}, {('up' if k[1] > 0 else 'down'):>4}: "
+              f"{_fmt(p, how, e)}")
+
+
 if __name__ == "__main__":
-    run()
+    import sys
+    if "odds" not in sys.argv:
+        run()
+    if "shapes" not in sys.argv:
+        run_odds()

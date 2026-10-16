@@ -58,6 +58,9 @@ name = "StepMachine"
 [[lean_lib]]
 name = "BuildingStep"
 
+[[lean_lib]]
+name = "MassMachine"
+
 [[lean_exe]]
 name = "building"
 root = "Main"

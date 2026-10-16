@@ -58,6 +58,6 @@ A proof that runs, written in Lean 4 (version 4.35.0) with no math library: only
 
 **To run it yourself:** install Lean (https://lean-lang.org), then in this folder run `lake exe cache get` (downloads Mathlib pre-checked), `lake build BuildingComplex BuildingStream BuildingMul BuildingFull BuildingFlip BuildingFind BuildingBreak BuildingLand` (checks every proof, including the Mathlib links), and `lake build && .lake/build/bin/building` (runs the demo, about 2 seconds).
 
-**In a Claude workspace** (where Mathlib's download is blocked): the files and the compiled library are in the private GitHub repository `laboo/assembly-lean`; clone it and run `bash setup.sh` (about a minute), and everything checks in seconds.
+**In a Claude workspace** (where Mathlib's download is blocked): the files and the compiled library are in the GitHub repository `laboo/assembly-lean`; clone it and run `bash setup.sh` (about a minute), and everything checks in seconds.
 
 **Not yet covered:** the wording pass (the model calls finer floors "up", the code calls them "below the point"); the step rule.

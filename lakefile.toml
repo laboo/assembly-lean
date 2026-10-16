@@ -70,6 +70,9 @@ name = "PairMachine"
 [[lean_lib]]
 name = "Space3Machine"
 
+[[lean_lib]]
+name = "CompileMachine"
+
 [[lean_exe]]
 name = "building"
 root = "Main"

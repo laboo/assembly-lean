@@ -76,3 +76,9 @@ name = "CompileMachine"
 [[lean_exe]]
 name = "building"
 root = "Main"
+
+[[lean_lib]]
+name = "ShadowCert"
+
+[[lean_lib]]
+name = "ShadowExamples"

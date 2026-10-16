@@ -1,0 +1,57 @@
+name = "building"
+version = "0.1.0"
+defaultTargets = ["building"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.35.0"
+
+[[lean_lib]]
+name = "Building"
+
+[[lean_lib]]
+name = "BuildingComplex"
+
+[[lean_lib]]
+name = "StreamMachine"
+
+[[lean_lib]]
+name = "BuildingStream"
+
+[[lean_lib]]
+name = "MulMachine"
+
+[[lean_lib]]
+name = "BuildingMul"
+
+[[lean_lib]]
+name = "FullMachine"
+
+[[lean_lib]]
+name = "FlipMachine"
+
+[[lean_lib]]
+name = "BuildingFull"
+
+[[lean_lib]]
+name = "BuildingFlip"
+
+[[lean_lib]]
+name = "FindMachine"
+
+[[lean_lib]]
+name = "BuildingFind"
+
+[[lean_lib]]
+name = "BuildingBreak"
+
+[[lean_lib]]
+name = "LandMachine"
+
+[[lean_lib]]
+name = "BuildingLand"
+
+[[lean_exe]]
+name = "building"
+root = "Main"

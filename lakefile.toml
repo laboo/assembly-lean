@@ -52,6 +52,12 @@ name = "LandMachine"
 [[lean_lib]]
 name = "BuildingLand"
 
+[[lean_lib]]
+name = "StepMachine"
+
+[[lean_lib]]
+name = "BuildingStep"
+
 [[lean_exe]]
 name = "building"
 root = "Main"

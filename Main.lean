@@ -5,7 +5,27 @@ import FullMachine
 import FlipMachine
 import FindMachine
 import LandMachine
+import StepMachine
 open Building Building.Spot
+
+/-- Every other entry (the cells a particle can reach on this tick). -/
+def everyOther (l : List Int) : List Int :=
+  (List.range l.length).filterMap fun j => if j % 2 == 0 then l[j]? else none
+
+/-- A plain coin-flip walk, for comparison: same moves, but each tick a fair coin decides
+"carry on" or "turn", with no arrows. Counts out of `2^t` chains, cell by cell. -/
+def plainWalk (t : Nat) : List Int :=
+  let tickP (row : List (Int × Int)) : List (Int × Int) :=
+    List.zip ([0, 0] ++ row.map (fun c => c.1 + c.2)) (row.map (fun c => c.1 + c.2) ++ [0, 0])
+  let rec go : Nat → List (Int × Int) → List (Int × Int)
+    | 0, row => row
+    | n + 1, row => go n (tickP row)
+  (go t [(1, 0)]).map fun c => c.1 + c.2
+
+/-- Undo `n` ticks. -/
+def runBack : Nat → Row → Row
+  | 0, row => row
+  | n + 1, row => runBack n (untick row)
 
 /-- Write an address the usual way, biggest place first: the lowest floor first, the
 ground floor last. -/
@@ -231,3 +251,28 @@ def main : IO Unit := do
     IO.println s!"  after {n} floors the landing spot is pinned to: {lr} + {li} i"
   let (fr2, fi2) := approx landed 60
   IO.println s!"  where it lands (60 floors):                   {fr2} + {fi2} i"
+
+  IO.println ""
+  IO.println "== The step rule (a toy): one particle on a row of cells, two arrows per cell =="
+  IO.println "  start: one arrow of size 1, heading right; each tick climbs one floor"
+  let t8 := run 8 start
+  IO.println "  tickets after 8 ticks, cells -8 to 8 (odd cells are always empty, so skipped):"
+  IO.println s!"    the checkerboard:     {everyOther (t8.map cellSize)}"
+  IO.println s!"    a plain coin walk:    {everyOther (plainWalk 8)}"
+  IO.println "    (same 256 tickets; the arrows' cancelling empties the middle and piles up on the right)"
+  -- find an arrow where two paths meet and cancel exactly
+  let r2 := run 2 start
+  for j in List.range r2.length do
+    let c := r2.getD j (0, 0)
+    if c.1 != 0 && c.2 != 0 && sendL c == 0 then
+      IO.println s!"  exact cancellation at tick 3, cell {(j : Int) - 2 - 1}: a left arrow {showSpot c.2} carried on, plus a right arrow turned, {showSpot (-(i * c.1))}, gives 0"
+  for t in [1, 5, 10, 20] do
+    IO.println s!"  tickets after {t} ticks: {total (run t start)}   (2^{t} = {(2 : Int) ^ t})"
+  let back := runBack 10 (run 10 start)
+  IO.println s!"  10 ticks forward, then 10 back: {back.map (fun c => (showSpot c.1, showSpot c.2))}   (the start, doubled 10 times = 1024)"
+  let stepCoin : Coin := fun n => ((n + 5) * 2654435761 / 65536) % 2 == 1
+  let k := ticketOf stepCoin 8
+  let cell := landCell 8 stepCoin
+  IO.println s!"  landing after 8 ticks: 8 coin flips {(List.range 8).map (fun n => if stepCoin n then 1 else 0)} pick ticket {k} of 256"
+  IO.println s!"    it lands in cell {(cell : Int) - 8}, which holds {cellSize (t8.getD cell (0, 0))} of the 256 tickets"
+  IO.println s!"  every chain of 8 flips checked: each cell is landed in by exactly as many chains as it has tickets: {landCounts 8 == ticketCounts 8}"

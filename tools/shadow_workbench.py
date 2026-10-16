@@ -971,3 +971,269 @@ if __name__ == "__main__":
         run()
     if "shapes" not in sys.argv:
         run_odds()
+
+
+# ---------------------------------------------------------------- particles on floors (the building, start small)
+
+def floor_odds(k, phi_deg):
+    """A particle's direction sits on floor k's ball (the surface of the ball in k dimensions).
+    A look along a line at angle phi (on that ball) to the direction answers 'yes' when a random
+    point of the ball casts its shadow past the direction's own shadow, taken from the other side.
+    Returns the share of the ball that answers 'yes'."""
+    c = F(float(np.cos(np.radians(phi_deg))))
+    r = share(Ball(k), [[1] + [0] * (k - 1)], Past(0, -c))
+    return float(r["value"])
+
+
+def run_floors():
+    print()
+    print("=" * 72)
+    print("PARTICLES ON FLOORS: does the floor's ball give the observed odds?")
+    print("=" * 72)
+    print("\nElectron spin: magnet turned by angle t; observed odds of 'up' = (1 + cos t)/2.")
+    print(f"{'t':>5} {'observed':>9} {'plane floor':>12} {'our floor':>10} {'4th floor':>10}")
+    for t in [0, 30, 60, 90, 120, 150, 180]:
+        obs = (1 + np.cos(np.radians(t))) / 2
+        print(f"{t:>4}° {obs:>9.4f} {floor_odds(2, t):>12.4f} {floor_odds(3, t):>10.4f} {floor_odds(4, t):>10.4f}")
+    print("\nLight: polarizer turned by angle t; observed odds of passing = cos^2 t.")
+    print("(Light turned by a quarter turn is fully blocked, so on any ball it sits opposite: angle 2t.)")
+    print(f"{'t':>5} {'observed':>9} {'plane floor':>12} {'our floor':>10} {'4th floor':>10}")
+    for t in [0, 15, 30, 45, 60, 75, 90]:
+        obs = np.cos(np.radians(t)) ** 2
+        print(f"{t:>4}° {obs:>9.4f} {floor_odds(2, 2 * t):>12.4f} {floor_odds(3, 2 * t):>10.4f} {floor_odds(4, 2 * t):>10.4f}")
+
+
+if __name__ == "__main__" and "floors" in sys.argv:
+    run_floors()
+
+
+# ---------------------------------------------------------------- the locator: where in the building does each particle live?
+#
+# Placements come only from the model: a floor of the building (0 = point, 1 = line, 2 = plane,
+# 3 = ours, 4, 5), and on it the particle as some directions on that floor's compass
+# (the compass = every direction one can point in on that floor).
+# Several directions can sit on separate compasses side by side, or all on one shared compass.
+# A look along a line: each direction answers 'yes' when the compass's random point casts its shadow
+# past that direction's own shadow (taken from the other side); the particle's answer is how many say yes.
+# Each particle's fingerprint comes only from observation: how many answers a look can give,
+# the turn of the look that reverses the answer (sets how far around the compass a turn goes),
+# and the observed odds as the look is turned.
+
+def _compass_share(k, a):
+    """Share of floor k's compass whose shadow lands at a or beyond."""
+    if k == 1:                       # the line's compass is just its two ends
+        return sum(1 for p in (-1, 1) if p >= a) / 2
+    return float(_ball_share_past(Ball(k).shadow_power(), F(float(a)))[0])
+
+
+def placement_odds(k, dirs, phi, shared):
+    """Odds of each answer (number of 'yes') for directions at compass angles `dirs` (0 = north),
+    looked at along a line turned by phi on the compass."""
+    m = len(dirs)
+    if m == 0:
+        return [1.0]
+    if k == 0:
+        return None                  # a point has no directions to point in
+    th = [-float(np.cos(np.radians(phi - d))) for d in dirs]
+    if shared:                       # one random point of one compass answers for every direction
+        ts = sorted(th)
+        ge = [1.0] + [_compass_share(k, t) for t in ts] + [0.0]
+        return [ge[j] - ge[j + 1] for j in range(m + 1)]
+    ps = [_compass_share(k, t) for t in th]   # separate compasses: independent answers
+    dist = [1.0]
+    for p in ps:
+        new = [0.0] * (len(dist) + 1)
+        for j, q in enumerate(dist):
+            new[j] += q * (1 - p)
+            new[j + 1] += q * p
+        dist = new
+    return dist
+
+
+PARTICLES = [
+    # name, directions on the compass, turn that reverses the answer (deg), observed odds of 0..m 'yes' at turn t
+    ("Higgs", [], None, lambda t: [1.0]),
+    ("electron (spin pointing up)", [0], 180,
+     lambda t: [(1 - np.cos(t)) / 2, (1 + np.cos(t)) / 2]),
+    ("light (polarized)", [0], 90,
+     lambda t: [np.sin(t) ** 2, np.cos(t) ** 2]),
+    ("graviton (expected, not yet seen)", [0], 45,
+     lambda t: [np.sin(2 * t) ** 2, np.cos(2 * t) ** 2]),
+    ("W or Z, pointing up", [0, 0], 180,
+     lambda t: [((1 - np.cos(t)) / 2) ** 2, np.sin(t) ** 2 / 2, ((1 + np.cos(t)) / 2) ** 2]),
+    ("W or Z, pointing sideways", [0, 180], 180,
+     lambda t: [np.sin(t) ** 2 / 2, np.cos(t) ** 2, np.sin(t) ** 2 / 2]),
+]
+
+
+def run_locator():
+    print()
+    print("=" * 72)
+    print("THE LOCATOR: where does each particle live?")
+    print("=" * 72)
+    turns = list(range(0, 181, 15))
+    floors = {0: "point", 1: "line", 2: "plane", 3: "ours", 4: "4th", 5: "5th"}
+    for name, dirs, rev, observed in PARTICLES:
+        m = len(dirs)
+        s = 1 if rev is None else 180 // rev            # compass turn per turn of the look
+        print(f"\n{name}: {m + 1} possible answer(s)" + ("" if rev is None else f", answer reverses at a {rev}° turn"))
+        variants = [False] if m <= 1 else [False, True]
+        for shared in variants:
+            row = []
+            for k in floors:
+                worst = 0.0
+                ok = True
+                for t in turns:
+                    pred = placement_odds(k, dirs, s * t, shared)
+                    if pred is None:
+                        ok = False
+                        break
+                    obs = observed(np.radians(t))
+                    worst = max(worst, max(abs(a - b) for a, b in zip(pred, obs)))
+                row.append("no room" if not ok else ("FITS" if worst < 1e-6 else f"off {worst:.3f}"))
+            label = "" if m <= 1 else ("  one shared compass: " if shared else "  separate compasses: ")
+            print(f"  {label:<23}" + "  ".join(f"{floors[k]}: {r:<8}" for k, r in zip(floors, row)))
+
+
+if __name__ == "__main__" and "locate" in sys.argv:
+    run_locator()
+
+
+# ---------------------------------------------------------------- the locator, version 2: squared shadows
+#
+# A particle is one point on a floor's ball (written with arrows where the floor needs them).
+# A look gives each possible answer its own flat plane through the center; the planes sit at right
+# angles and fill the floor. The odds of an answer are the squared length of the point's shadow on
+# that answer's plane (so the odds always add to one, and shadows can cancel before squaring).
+# Each floor turns in its own natural way when our world turns:
+#   point floor: it doesn't turn;           plane floor: it turns only about one path (r times as fast);
+#   our floor:   ordinary turning;          4th floor: turning by the four-wide numbers (half as fast).
+# A massive particle can be looked at along any direction, so its floor must turn with every turn of
+# our world; a massless one is looked at only by turning about its path.
+
+def _rot3(axis, ang):
+    k = np.asarray(axis, float)
+    k = k / np.linalg.norm(k)
+    K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + np.sin(ang) * K + (1 - np.cos(ang)) * K @ K
+
+
+def _su2(axis, ang):
+    k = np.asarray(axis, float)
+    k = k / np.linalg.norm(k)
+    sx = np.array([[0, 1], [1, 0]], complex)
+    sy = np.array([[0, -1j], [1j, 0]])
+    sz = np.array([[1, 0], [0, -1]], complex)
+    return np.cos(ang / 2) * np.eye(2) - 1j * np.sin(ang / 2) * (k[0] * sx + k[1] * sy + k[2] * sz)
+
+
+def _proj(v):
+    v = np.asarray(v, complex)
+    v = v / np.linalg.norm(v)
+    return np.outer(v, v.conj())
+
+
+s2 = 1 / np.sqrt(2)
+FLOORS2 = {
+    "point": {"any_axis": True, "turn": lambda ax, a, r: np.eye(1),
+              "answers": {1: [[np.eye(1)]]}},
+    "plane": {"any_axis": False, "turn": lambda ax, a, r: _rot3([0, 0, 1], r * a)[:2, :2],
+              "answers": {2: [[_proj([1, 0]), _proj([0, 1])]]}},
+    "ours": {"any_axis": True, "turn": lambda ax, a, r: _rot3(ax, a),
+             "answers": {2: [[_proj([0, 0, 1]), np.eye(3) - _proj([0, 0, 1])],
+                             [np.eye(3) - _proj([0, 0, 1]), _proj([0, 0, 1])],
+                             [_proj([1, 0, 0]), np.eye(3) - _proj([1, 0, 0])]],
+                         3: [[_proj([s2, 1j * s2, 0]), _proj([0, 0, 1]), _proj([s2, -1j * s2, 0])]]}},
+    "4th": {"any_axis": True, "turn": lambda ax, a, r: _su2(ax, a),
+            "answers": {2: [[_proj([1, 0]), _proj([0, 1])]]}},
+}
+
+PARTICLES2 = [
+    # name, massive?, observed odds: for massive, a function of the look's direction n (prepared along z);
+    # for massless, a function of the polarizer turn t; and which answer is certain at the start
+    ("Higgs", True, lambda n: [1.0], 0),
+    ("electron, spin up", True, lambda n: [(1 + n[2]) / 2, (1 - n[2]) / 2], 0),
+    ("W or Z, pointing up", True,
+     lambda n: [((1 + n[2]) / 2) ** 2, (1 - n[2] ** 2) / 2, ((1 - n[2]) / 2) ** 2], 0),
+    ("W or Z, pointing sideways", True,
+     lambda n: [(1 - n[2] ** 2) / 2, n[2] ** 2, (1 - n[2] ** 2) / 2], 1),
+    ("light, polarized", False, lambda t: [np.cos(t) ** 2, np.sin(t) ** 2], 0),
+    ("graviton (expected)", False, lambda t: [np.cos(2 * t) ** 2, np.sin(2 * t) ** 2], 0),
+]
+
+
+def _fit(floor, answers, massive, observed, start, rate, rng, objects=300):
+    """Best possible match over every object certain to give answer `start` at the first look."""
+    F_ = FLOORS2[floor]
+    P0 = answers[start]
+    w, V = np.linalg.eigh(P0)
+    basis = V[:, w > 0.5]                       # the start answer's plane
+    if massive:
+        looks = [np.array([0, 0, 1.0])] + [v / np.linalg.norm(v) for v in rng.normal(size=(40, 3))]
+    else:
+        looks = list(np.radians(np.arange(0, 180, 7.5)))
+    best = np.inf
+    for _ in range(objects):
+        c = rng.normal(size=basis.shape[1]) + 1j * rng.normal(size=basis.shape[1])
+        psi = basis @ c
+        psi = psi / np.linalg.norm(psi)
+        worst = 0.0
+        for lk in looks:
+            if massive:
+                n = lk
+                ax = np.cross([0, 0, 1.0], n)
+                ang = np.arccos(np.clip(n[2], -1, 1))
+                if np.linalg.norm(ax) < 1e-12:
+                    ax = np.array([1.0, 0, 0])
+                U = F_["turn"](ax, ang, rate)
+                obs = observed(n)
+            else:
+                U = F_["turn"]([0, 0, 1], lk, rate)
+                obs = observed(lk)
+            pred = [float(np.real(psi.conj() @ (U @ P @ U.conj().T) @ psi)) for P in answers]
+            worst = max(worst, max(abs(a - b) for a, b in zip(pred, obs)))
+        best = min(best, worst)
+        if best < 1e-9:
+            break
+    return best
+
+
+def run_locator2():
+    print()
+    print("=" * 72)
+    print("THE LOCATOR, SQUARED SHADOWS: the smallest floor where each particle fits")
+    print("=" * 72)
+    rng = np.random.default_rng(4)
+    order = ["point", "plane", "ours", "4th"]
+    for name, massive, observed, start in PARTICLES2:
+        k = len(observed(np.array([0, 0, 1.0])) if massive else observed(0.0))
+        cells = []
+        home = None
+        for fl in order:
+            F_ = FLOORS2[fl]
+            if massive and not F_["any_axis"]:
+                cells.append(f"{fl}: can't turn with every turn of our world")
+                continue
+            if k not in F_["answers"]:
+                cells.append(f"{fl}: can't give {k} answers")
+                continue
+            rates = [1] if fl != "plane" else [1, 2, 3]
+            best, best_r = np.inf, None
+            for answers in F_["answers"][k]:
+                for r in rates:
+                    g = _fit(fl, answers, massive, observed, start, r, rng)
+                    if g < best:
+                        best, best_r = g, r
+            if best < 1e-9:
+                cells.append(f"{fl}: FITS" + (f" (turning {best_r}x as fast)" if fl == "plane" else ""))
+                home = home or fl
+            else:
+                cells.append(f"{fl}: off {best:.3f}")
+        print(f"\n{name} ({'massive' if massive else 'massless'}, {k} answer{'s' if k > 1 else ''}):"
+              f"   smallest floor that fits: {home or 'none'}")
+        for c in cells:
+            print("     " + c)
+
+
+if __name__ == "__main__" and "locate2" in sys.argv:
+    run_locator2()

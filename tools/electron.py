@@ -162,5 +162,100 @@ def step3():
 
 
 if __name__ == "__main__":
-    step2()
-    step3()
+    import sys
+    if "4" in sys.argv or len(sys.argv) == 1:
+        pass
+
+
+SX = np.array([[0, 1], [1, 0]], complex)
+SY = np.array([[0, -1j], [1j, 0]])
+SZ = np.array([[1, 0], [0, -1]], complex)
+
+
+def _sigma_p(p):
+    return p[0] * SX + p[1] * SY + p[2] * SZ
+
+
+def _real(Mc):
+    """A complex-linear rule written as a rule on real numbers (each arrow = two numbers)."""
+    A, B = Mc.real, Mc.imag
+    return np.block([[A, -B], [B, A]])
+
+
+def _real_conj(Mc):
+    """The rule psi -> Mc @ conj(psi), written on real numbers."""
+    A, B = Mc.real, Mc.imag
+    return np.block([[A, B], [B, -A]])
+
+
+def step4(m=1.0):
+    print()
+    print("=" * 74)
+    print("STEP 4: MASS (where does the electron's mass fit?)")
+    print("=" * 74)
+    rng = np.random.default_rng(3)
+    eps = 1j * SY    # pairs an arrow pair with its own mirror image
+
+    # each placement: the rule that moves the object, as a real matrix for a wave of wave number p
+    placements = {
+        "4th floor, no mass (4 numbers)":
+            (4, lambda p: _real(-1j * _sigma_p(p)), lambda U: _real(U)),
+        # switching with the mirror pairs the wave moving one way with the mirror of the wave moving the
+        # other way, so the two directions are followed together (still 4 numbers at each place)
+        "4th floor, mass by switching with its own mirror (4 numbers)":
+            (8, lambda p: _real(np.block([[-1j * _sigma_p(p), np.zeros((2, 2))],
+                                          [np.zeros((2, 2)), 1j * _sigma_p(p)]]))
+                + _real_conj(np.block([[np.zeros((2, 2)), -1j * m * eps], [-1j * m * eps, np.zeros((2, 2))]])),
+             lambda U: _real(np.block([[U, np.zeros((2, 2))], [np.zeros((2, 2)), U]]))),
+        "two 4th-floor copies, left- and right-handed, mass by switching between them (8 numbers)":
+            (8, lambda p: _real(-1j * np.block([[-_sigma_p(p), m * np.eye(2)], [m * np.eye(2), _sigma_p(p)]])),
+             lambda U: _real(np.block([[U, np.zeros((2, 2))], [np.zeros((2, 2)), U]]))),
+    }
+    for name, (nums, rule, turnrep) in placements.items():
+        e_err, spin_err, charge_err, rest, fastest = 0.0, 0.0, 0.0, None, 0.0
+        for _ in range(200):
+            p = rng.normal(size=3) * rng.uniform(0.1, 3)
+            M = rule(p)
+            w = np.sort(np.abs(np.linalg.eigvals(M).imag))
+            target = np.sqrt(p @ p + m * m)
+            e_err = max(e_err, np.max(np.abs(w - target)))
+            # speed of a wave packet: change of the turning rate with wave number
+            dp = 1e-6 * p / np.linalg.norm(p)
+            w2 = np.sort(np.abs(np.linalg.eigvals(rule(p + dp)).imag))
+            fastest = max(fastest, np.max((w2 - w) / np.linalg.norm(dp)))
+            # turning with our world: turn the wave and the object together
+            ax, ang = rng.normal(size=3), rng.uniform(0, 2 * np.pi)
+            Rm = _rot3(ax, ang)
+            U = turnrep(_su2c(ax, ang))
+            spin_err = max(spin_err, np.max(np.abs(rule(Rm @ p) - U @ M @ np.linalg.inv(U))))
+            # the shared turn (charge): turning every arrow by the same amount must not change the rule
+            a = rng.uniform(0, 2 * np.pi)
+            V = _real(np.exp(1j * a) * np.eye(nums // 2))
+            charge_err = max(charge_err, np.max(np.abs(M @ V - V @ M)))
+        rest = np.sort(np.abs(np.linalg.eigvals(rule(np.zeros(3))).imag)).max()
+        ok = lambda x: "yes" if x < 1e-6 else f"no (off by {x:.2f})"
+        print(f"\n{name}:")
+        print(f"   energy rule of relativity (turning rate^2 = wave number^2 + mass^2):  {ok(e_err)}")
+        print(f"   has mass (turns even when standing still): {'yes' if rest > 1e-9 else 'no'};"
+              f"  never faster than light: {'yes' if fastest <= 1 + 1e-6 else 'no'} (fastest {fastest:.3f})")
+        print(f"   turns properly with every turn of our world (spin):                    {ok(spin_err)}")
+        print(f"   unchanged by the shared turn (so it can carry charge):                 {ok(charge_err)}")
+
+
+def _rot3(axis, ang):
+    return rot3(axis, ang)
+
+
+def _su2c(axis, ang):
+    return su2(axis, ang)
+
+
+if __name__ == "__main__":
+    import sys
+    steps = sys.argv[1:] or ["2", "3", "4"]
+    if "2" in steps:
+        step2()
+    if "3" in steps:
+        step3()
+    if "4" in steps:
+        step4()

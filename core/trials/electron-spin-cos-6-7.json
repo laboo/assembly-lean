@@ -1,0 +1,27 @@
+{
+  "note": "electron spin: prepare up along the third axis, then measure along another axis",
+  "particle": {
+    "floor": 3,
+    "kind": "thing"
+  },
+  "experiment": {
+    "prepare": {
+      "device": "magnet",
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "length": 1
+    },
+    "measure": {
+      "device": "magnet",
+      "axis": [
+        2,
+        3,
+        6
+      ],
+      "length": 7
+    }
+  }
+}

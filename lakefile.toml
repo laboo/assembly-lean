@@ -85,3 +85,7 @@ name = "ShadowExamples"
 
 [[lean_lib]]
 name = "StrictCore"
+
+[[lean_exe]]
+name = "strictcore"
+root = "StrictCore.Run"

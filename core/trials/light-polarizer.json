@@ -1,0 +1,18 @@
+{
+  "note": "light through a polarizer",
+  "particle": {
+    "floor": 2,
+    "kind": "operation"
+  },
+  "experiment": {
+    "measure": {
+      "device": "magnet",
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "length": 1
+    }
+  }
+}

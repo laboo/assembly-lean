@@ -1,0 +1,13 @@
+{
+  "source": "The spin law for the electron and other spin-1/2 particles: after a magnet along one axis reads 'up', a magnet at angle t reads 'up' with odds (1 + cos t)/2. Measured with Stern-Gerlach magnets and polarized neutron and electron beams. Range here: plus or minus 0.02. Note: this file holds the measured law with a range, not one lab's raw counts.",
+  "answers": {
+    "up": [
+      "0",
+      "1/50"
+    ],
+    "down": [
+      "49/50",
+      "1"
+    ]
+  }
+}

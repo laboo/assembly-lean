@@ -1,0 +1,21 @@
+{
+  "note": "Higgs: a thing on the point floor, measured with a magnet",
+  "particle": {
+    "floor": 0,
+    "kind": "thing",
+    "numbers": [
+      1
+    ]
+  },
+  "experiment": {
+    "measure": {
+      "device": "magnet",
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "length": 1
+    }
+  }
+}

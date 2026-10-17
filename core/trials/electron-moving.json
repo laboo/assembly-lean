@@ -1,0 +1,18 @@
+{
+  "note": "the moving, massive electron on the fourth floor",
+  "particle": {
+    "floor": 4,
+    "kind": "thing"
+  },
+  "experiment": {
+    "measure": {
+      "device": "magnet",
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "length": 1
+    }
+  }
+}

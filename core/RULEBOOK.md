@@ -6,7 +6,7 @@ Drafted Oct 16, 2026, evening. This builds the model as proposed in this chat: t
 
 The core holds only the rules below, and each rule comes from the model.
 
-**What you can put in.** A particle, named by its floor, its kind and its compass numbers, and an experiment, named by its devices, their directions and the turns. Nothing else can be put in: no speeds, no extra circles, no copies.
+**What you can put in.** A particle, named by its floor, its kind and its compass numbers, and an experiment, named by its devices, their directions and the turns. Nothing else can be put in: no speeds, no extra circles, no copies. No input can give a spare piece of the compass a job; only a new model version can.
 
 **What it measures.** The core works out the odds and seals them before anyone opens the observed numbers. Then the two are compared.
 
@@ -49,7 +49,7 @@ The core holds only the rules below, and each rule comes from the model.
 ## Hard stops (the model doesn't say, so the core refuses)
 
 - **How anything moves from one point to its neighbors.** There is no step rule. This blocks mass, the positron, the double slit and charge.
-- **Charge.** It may be a turning inside the compass, but the model doesn't say which one.
+- **Charge.** The model doesn't say where it lives.
 - **Which particles flip sign when two of them swap.**
 - **Events,** the only place where opposite marks are said to cancel.
 - **A plane-floor particle with no path,** that is, one at rest.

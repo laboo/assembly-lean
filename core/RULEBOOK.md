@@ -54,6 +54,7 @@ The core holds only the rules below, and each rule comes from the model.
 
 - **How anything moves from one point to its neighbors.** There is no step rule. This blocks mass, the positron, the double slit and charge. Warning for whoever proposes one: multiplying a thing by a direction turns it into a non-thing, so a step must either alternate halves each tick or step by a turning.
 - **Charge.** The model doesn't say where it lives.
+- **What an operation is made of** (the author, Oct 16: "Operations may have to come later"). The core refuses to measure light, the W or the Z until the model says which pieces an operation uses. Exploratory notes, not counted as results: light placed as a direction of the plane floor gives Malus's law through polarizers, and the W placed as a direction of our floor gives only two answers under a magnet, where three are observed.
 - **Which particles flip sign when two of them swap.** Proposed to leave this list: for objects with size in three directions that form one object together (rule 8), swapping two is the same as giving one a full turn (Finkelstein and Rubinstein, 1968). So things, which come back only after two turns, must flip sign, and operations must not. This is checked against the literature, not yet run in the core, and it is waiting on the author's go.
 - **Events,** the only place where opposite marks are said to cancel.
 - **A plane-floor particle with no path,** that is, one at rest.
@@ -62,4 +63,4 @@ The core holds only the rules below, and each rule comes from the model.
 
 ## What the core will measure first
 
-The odds of measurements, before and after turns of our world, for the Higgs, light, the electron's spin, and the W as a thing and as an operation. This includes the electron's two-turn return, which the compass predicts and which observation confirms.
+The odds of measurements, before and after turns of our world, for things: the Higgs and the electron's spin. The electron's two-turn return is computed (a thing is minus itself after one full turn), but comparing it with observation needs two paths recombined, which waits on motion.

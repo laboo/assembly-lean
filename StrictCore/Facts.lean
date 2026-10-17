@@ -1,5 +1,5 @@
 /-
-  THE STRICT CORE, part 2: what the compass gives, checked by Lean.   Model v4.0.0.
+  THE STRICT CORE, part 2: what the compass gives, checked by Lean.   Model v4.1.0.
 
   Each fact below is computed from the multiplication rule in `Compass.lean` and checked by
   Lean's kernel (`decide`). Nothing is typed in from physics. Where a fact is a consequence of

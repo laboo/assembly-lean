@@ -1,18 +1,29 @@
 {
-  "note": "light through a polarizer",
+  "note": "light through two polarizers (the Oct 16 file named a magnet here by mistake)",
   "particle": {
     "floor": 2,
     "kind": "operation"
   },
   "experiment": {
-    "measure": {
-      "device": "magnet",
-      "axis": [
-        0,
-        0,
-        1
-      ],
-      "length": 1
-    }
+    "measure": [
+      {
+        "device": "polarizer",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "length": 1
+      },
+      {
+        "device": "polarizer",
+        "axis": [
+          3,
+          4,
+          0
+        ],
+        "length": 5
+      }
+    ]
   }
 }

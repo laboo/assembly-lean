@@ -1,27 +1,29 @@
 {
-  "note": "electron spin: prepare up along the third axis, then measure along another axis",
+  "note": "electron spin: a magnet along the third axis prepares 'up', then a magnet along another axis measures",
   "particle": {
     "floor": 3,
     "kind": "thing"
   },
   "experiment": {
-    "prepare": {
-      "device": "magnet",
-      "axis": [
-        0,
-        0,
-        1
-      ],
-      "length": 1
-    },
-    "measure": {
-      "device": "magnet",
-      "axis": [
-        0,
-        0,
-        -1
-      ],
-      "length": 1
-    }
+    "measure": [
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length": 1
+      },
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          -1
+        ],
+        "length": 1
+      }
+    ]
   }
 }

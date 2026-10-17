@@ -1,5 +1,5 @@
 /-
-  THE STRICT CORE, part 1: the compass.            Model v4.0.0 (approved Oct 16, 2026).
+  THE STRICT CORE, part 1: the compass.            Model v4.1.0 (its rules unchanged since v4.0.0, approved Oct 16, 2026).
 
   Everyday language first:
   * A floor has n directions. Every direction is alike: each one, multiplied by itself, gives 1.

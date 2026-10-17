@@ -1,0 +1,38 @@
+{
+  "note": "electron spin, three magnets in a row: the first prepares 'up' along the third axis, the second measures along the first axis, the third measures along the third axis again",
+  "particle": {
+    "floor": 3,
+    "kind": "thing"
+  },
+  "experiment": {
+    "measure": [
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length": 1
+      },
+      {
+        "device": "magnet",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "length": 1
+      },
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length": 1
+      }
+    ]
+  }
+}

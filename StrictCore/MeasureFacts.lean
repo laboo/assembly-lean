@@ -1,5 +1,5 @@
 /-
-  THE STRICT CORE, part 4: what the measurement rule gives, checked by Lean.   Model v4.0.0.
+  THE STRICT CORE, part 4: what the measurement rule gives, checked by Lean.   Model v4.1.0.
 
   These are the core's own computations, not comparisons with observation; the referee does the
   comparing. Where the result happens to equal a known law, the comment names the law, so a
@@ -22,12 +22,18 @@ theorem testAxes_whole : testAxes.all (fun (m, L) => wholeLength m L) = true := 
 /-- The four reference turnings tried for the thing's free side. -/
 def testJs : List C := [piece 3 3, piece 3 5, piece 3 6, scale (-1) (piece 3 3)]
 
+/-- Odds of "up" for thing `x` under a magnet with axis `m` of whole length `L`, from the "up"
+    shadow alone: (|up shadow|^2, (2L)^2 |x|^2). -/
+def upOdds (J : C) (m : List Int) (L : Int) (x : C) : Int × Int :=
+  (len2 (flat J m L 1 x), 4 * L * L * len2 x)
+
 /-- For a thing on our floor: prepare "up" with a magnet along n, then measure with a magnet
     along m. Check (1) the odds are the same for every reference turning J, and (2) they equal
-    (1 + cos of the angle between n and m) / 2. -/
+    (1 + cos of the angle between n and m) / 2. (For the core's own J, `OddsFacts.lean` proves
+    (2) for every pair of axes; this check is what still covers the other three J's.) -/
 def thingCheck : Bool :=
   testAxes.all fun (n, Ln) => testAxes.all fun (m, Lm) =>
-    let os := testJs.map fun J => thingUp J m Lm (preparedUp J n Ln)
+    let os := testJs.map fun J => upOdds J m Lm (preparedUp J n Ln)
     let nm := (List.zipWith (· * ·) n m).foldl (· + ·) 0
     os.all (fun o => sameOdds o (Ln * Lm + nm, 2 * Ln * Lm))
 
@@ -41,8 +47,8 @@ theorem thing_odds : thingCheck = true := by decide +kernel
 -- recombined, which needs motion -- a hard stop.
 theorem full_turn_invisible_alone :
     testAxes.all (fun (m, L) =>
-      sameOdds (thingUp refJ m L (preparedUp refJ [0,0,1] 1))
-               (thingUp refJ m L (scale (-1) (preparedUp refJ [0,0,1] 1)))) = true := by
+      sameOdds (upOdds refJ m L (preparedUp refJ [0,0,1] 1))
+               (upOdds refJ m L (scale (-1) (preparedUp refJ [0,0,1] 1)))) = true := by
   decide +kernel
 
 -- Light (an operation that is a direction of the plane floor) through two polarizers at an angle

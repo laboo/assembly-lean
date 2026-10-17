@@ -1,17 +1,18 @@
 {
-  "approved_by": "the author (Oct 16, 2026, 7:18 pm): referee gains poke; runner marks unlogged answers; model rules unchanged",
+  "approved_by": "the author's go of 7:41 pm ('Go on all 6'), continued: fix 6 as first locked at 7:54 pm could not register a trial with no observed numbers (the two trials expected to stop); corrected before any formal run under the new lock",
   "files": {
-    "StrictCore.lean": "627d0d6ebb76d4190387116ba2a9bfe6e340e1f69b69c9414a4b0c39b198ce09",
-    "StrictCore/Compass.lean": "38007d86bb6c063d9c7814fcea580aa28968397185a4121d421c55dd6a1d0912",
-    "StrictCore/Facts.lean": "d89ecfe85075531edc87ff38b3243acebe41f0e676e8ec87164d4fc2dad44eda",
-    "StrictCore/Measure.lean": "57fc36052f35a5f98f310287874e23ce86dbd9117993eed7d74bd9c39287c0fc",
-    "StrictCore/MeasureFacts.lean": "c7073013e0a3cfe964334b731dd9a27eff2f5e080fa8e9647ee92f26a3a84cc3",
-    "StrictCore/Run.lean": "ed3b0c6e284b735fcf99a6e0ed088af9e19100ed5f8003ebf640a19dd18112ed",
-    "core/RULEBOOK.md": "87a299a42afe3c72153009c609b14bab7952fb5080c653be5876c8940d825879",
-    "core/referee.py": "219763ebc33a5bd1b7ce3902621e2cf8531c00052e4dea43cc22bae3416a9eee",
+    "StrictCore.lean": "d437b7562c1a89a59b2a7200866bfe31a5d6346d2423928448a0cc86623d0962",
+    "StrictCore/Compass.lean": "47be8852013d1462dedb07a759c4068508ad87dd1d66bf798474522a998fab0f",
+    "StrictCore/Facts.lean": "660b38e07bd8ef008f8ec1eabb7c2c810e5d996bc1f646c3161d33dfee657e96",
+    "StrictCore/Measure.lean": "c34826463b50085994d68686f3299c21a3b11f51506c2b2b2e82bf74d72e3b01",
+    "StrictCore/MeasureFacts.lean": "b5ad8a7e3a2e3aed4341f7b1c9e409437fdad9f39cf423314af2037cf698e4e8",
+    "StrictCore/OddsFacts.lean": "f3cdf38d60897a488b1393996c885b817979a823efe853545ca2dfad67fb4526",
+    "StrictCore/Run.lean": "9a1d9193b8c09ae5d7910808e6ca6588c622a17a9f222007345f123aa00f1160",
+    "core/RULEBOOK.md": "c96ed7a9d5d9ce0eed961b1b7d899dc5f2f95bac0eb39b4a89685b3f99305d06",
+    "core/referee.py": "406f74e0b465f2e944b6c92687d551e9259f8f97c6576ad95c60053f43dc8e99",
     "lakefile.toml": "742ad839762a1f651730b4f80439eda9ca6c414733651b87c5a6ac58bd7436ef"
   },
-  "fingerprint": "88e014845ae1fd769966e139dadde88a1d179f86b23779458c1c24cf8b103c65",
-  "model": "4.0.0",
-  "time": "2026-10-16T19:19:37-0700"
+  "fingerprint": "3b66b415bc36343fd3a98b1e464b8f43cda8c6687b18298a4caf0306b8cc9caf",
+  "model": "4.1.0",
+  "time": "2026-10-16T19:54:36-0700"
 }

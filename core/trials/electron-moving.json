@@ -5,14 +5,25 @@
     "kind": "thing"
   },
   "experiment": {
-    "measure": {
-      "device": "magnet",
-      "axis": [
-        0,
-        0,
-        1
-      ],
-      "length": 1
-    }
+    "measure": [
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length": 1
+      },
+      {
+        "device": "magnet",
+        "axis": [
+          0,
+          0,
+          1
+        ],
+        "length": 1
+      }
+    ]
   }
 }

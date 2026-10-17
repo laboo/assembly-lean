@@ -1,5 +1,5 @@
 /-
-  THE STRICT CORE, part 3: measurement and odds (rules 5 and 6).      Model v4.0.0.
+  THE STRICT CORE, part 3: measurement and odds (rules 5 and 6).      Model v4.1.0.
 
   Everyday language:
   * A measurement is one piece of the compass, set by what the device is made of.
@@ -38,18 +38,35 @@ def refJ : C := piece 3 3
     Parts it leaves alone are "up"; parts it flips are "down". -/
 def sortThing (J : C) (m : List Int) (x : C) : C := scale (-1) (mul 3 (mul 3 (magnet m) x) J)
 
-/-- Odds of "up" for thing `x` under a magnet with axis `m` of whole length `L`:
-    (part, whole) = (L|x|^2 + <x, sort x>,  2 L |x|^2). -/
-def thingUp (J : C) (m : List Int) (L : Int) (x : C) : Int × Int :=
-  (L * len2 x + dot x (sortThing J m x), 2 * L * len2 x)
+/-- Flattening a thing onto one answer of a magnet with axis `m` of whole length `L`:
+    `s = 1` keeps the part the magnet leaves alone ("up"), `s = -1` the part it flips ("down").
+    The result is the shadow on that answer's part times 2L, so it stays in whole numbers.
+    Odds of the answer = its squared length, out of (2L)^2 times the thing's squared length.
+    Each answer's shadow is worked out on its own: no answer is "whatever the others leave",
+    and `OddsFacts.lean` proves for every thing and every magnet that the odds add to one. -/
+def flat (J : C) (m : List Int) (L s : Int) (x : C) : C :=
+  add (scale L x) (scale s (sortThing J m x))
 
-/-- The thing a magnet with axis `m` (length `L`) leaves certain to read "up": the "up" part of
-    the first basic thing-piece whose "up" part is not zero. (Any nonzero choice gives the same
-    later odds, because the "up" part is one state up to its own turning.) -/
+/-- Preparing is measuring and keeping one answer (Landing and Chance: a measurement flattens a
+    particle onto its answer's part). The model doesn't say what a source sends, so the core
+    flattens the first basic thing-piece whose "up" part is not zero. `OddsFacts.lean` proves
+    that every later odds is the same whichever thing is flattened, so this is not a choice. -/
 def preparedUp (J : C) (m : List Int) (L : Int) : C :=
-  let tries := [0, 3, 5, 6].map fun a =>
-    add (scale L (piece 3 a)) (sortThing J m (piece 3 a))
+  let tries := [0, 3, 5, 6].map fun a => flat J m L 1 (piece 3 a)
   (tries.find? (fun t => len2 t != 0)).getD (plain 3 0)
+
+/-- Measurements in a row: every chain of answers (1 for "up", -1 for "down"), with the shadow
+    it leaves. Each step flattens the shadow the step before left. -/
+def chains (J : C) : List (List Int × Int) → C → List (List Int × C)
+  | [], x => [([], x)]
+  | (m, L) :: rest, x =>
+      (chains J rest (flat J m L 1 x)).map (fun p => (1 :: p.1, p.2)) ++
+      (chains J rest (flat J m L (-1) x)).map (fun p => ((-1) :: p.1, p.2))
+
+/-- What every chain's squared length is measured against: (2L)^2 for each magnet. -/
+def wholeOf : List (List Int × Int) → Int
+  | [] => 1
+  | (_, L) :: rest => 4 * L * L * wholeOf rest
 
 /-- Does an axis have whole-number length `L`? -/
 def wholeLength (m : List Int) (L : Int) : Bool :=

@@ -1,0 +1,21 @@
+{
+  "source": "The spin law in a row of Stern-Gerlach magnets: after a magnet along one axis keeps 'up', a magnet at right angles splits the beam evenly, and a third magnet along the first axis again splits each beam evenly, so the middle measurement wipes out the first answer and each of the four chains has odds 1/4. Demonstrated with Stern-Gerlach magnets in a row and with polarized neutron and electron beams; see Feynman, Leighton and Sands, The Feynman Lectures on Physics, Vol. III, ch. 5 (1965), and Sakurai, Modern Quantum Mechanics, section 1.1. Range here: plus or minus 0.02. Note: this file holds the measured law with a range, not one lab's raw counts, and it is the same spin law as the single-magnet trials applied twice, so it tests the flattening rule (measurements in a row), not a new law.",
+  "answers": {
+    "up then up": [
+      "23/100",
+      "27/100"
+    ],
+    "up then down": [
+      "23/100",
+      "27/100"
+    ],
+    "down then up": [
+      "23/100",
+      "27/100"
+    ],
+    "down then down": [
+      "23/100",
+      "27/100"
+    ]
+  }
+}

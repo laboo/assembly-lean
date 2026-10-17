@@ -1,4 +1,4 @@
-# The Strict Core: Rulebook (draft 2, not locked)
+# The Strict Core: Rulebook (draft 3, not locked)
 
 Drafted Oct 16, 2026, evening. This builds the model as proposed in this chat: the compass (a proposed v4.0.0, not yet approved), with "measurement" in place of "look" (v3.0.1, approved). Nothing here is locked until the author approves the whole rulebook.
 
@@ -24,10 +24,11 @@ The core holds only the rules below, and each rule comes from the model.
 3. **The compass** (settles issues 1 and 4). Every point of every grid carries the same compass: everything the directions make when multiplied together.
    - In known math this is the geometric algebra (Clifford, 1878; Hestenes, 1966).
    - Its size doubles with each floor (1, 2, 4, 8 and on), and each floor's compass sits inside the next one's, so each level inherits the compass below and adds to it.
-   - A particle on a floor uses only the part of the compass made from that floor's directions:
-     - On the point floor, that part is one plain number, so the Higgs gets one number with no exception.
-     - On the plane, it contains the complex plane: one compass, with the turning built in.
-     - On ours, it contains the four-wide numbers. From our floor up, the order of multiplying matters, as the order of turns does.
+   - **A thing uses its floor's plain number plus its floor's turnings, and nothing else.** One rule for every floor (review round 1; Hestenes chose the same part). It gives:
+     - On the point floor, one plain number, so the Higgs gets one number with no exception.
+     - On the plane, the complex plane: one compass, with the turning built in.
+     - On ours, the four-wide numbers. From our floor up, the order of multiplying matters, as the order of turns does.
+     - On the fourth floor, exactly two four-wide numbers, one for each handedness (known math). This is the Oct 16 electron's "second copy," which now falls out of the rule instead of being added. The fourth floor's volume piece is what tells the two handed copies apart (physics calls this chirality). Not yet tested in the core.
 
 4. **Turning** (settles issue 2). No one sets how anything turns. A turn is multiplying by a piece of the compass.
    - A thing is turned by multiplying it from one side.
@@ -39,6 +40,7 @@ The core holds only the rules below, and each rule comes from the model.
 
 6. **Measurement** (settles issue 3). A measurement is one piece of the compass, either a direction or a turning. Its answers are the parts of the particle that piece leaves alone, only flipped or only turned.
    - Which piece it is comes from what the device is made of: a slot of wires is a direction; a magnet, which is circling current, is a turning.
+   - By the same rule, a screen is made of places, so its answers are places. This covers the double slit (review round 1).
    - The experiment's record names the device; the tester never chooses.
    - (Known physics agrees: in geometric algebra the electric field is a direction and the magnetic field is a turning.)
 
@@ -48,9 +50,9 @@ The core holds only the rules below, and each rule comes from the model.
 
 ## Hard stops (the model doesn't say, so the core refuses)
 
-- **How anything moves from one point to its neighbors.** There is no step rule. This blocks mass, the positron, the double slit and charge.
+- **How anything moves from one point to its neighbors.** There is no step rule. This blocks mass, the positron, the double slit and charge. Warning for whoever proposes one: multiplying a thing by a direction turns it into a non-thing, so a step must either alternate halves each tick or step by a turning.
 - **Charge.** The model doesn't say where it lives.
-- **Which particles flip sign when two of them swap.**
+- **Which particles flip sign when two of them swap.** Proposed to leave this list: for objects with size in three directions that form one object together (rule 8), swapping two is the same as giving one a full turn (Finkelstein and Rubinstein, 1968). So things, which come back only after two turns, must flip sign, and operations must not. This is checked against the literature, not yet run in the core, and it is waiting on the author's go.
 - **Events,** the only place where opposite marks are said to cancel.
 - **A plane-floor particle with no path,** that is, one at rest.
 - **Where the line floor sits inside ours.**

@@ -1,6 +1,6 @@
 # The Strict Core: Rulebook (draft 3, not locked)
 
-Drafted Oct 16, 2026, evening. This builds the model as proposed in this chat: the compass (a proposed v4.0.0, not yet approved), with "measurement" in place of "look" (v3.0.1, approved). Nothing here is locked until the author approves the whole rulebook.
+Drafted Oct 16, 2026, evening. This builds model v4.0.0, the compass, which the author approved at 6:57 pm. The rulebook itself is locked only when the core is built and the author approves it.
 
 ## How the core works
 
@@ -24,11 +24,13 @@ The core holds only the rules below, and each rule comes from the model.
 3. **The compass** (settles issues 1 and 4). Every point of every grid carries the same compass: everything the directions make when multiplied together.
    - In known math this is the geometric algebra (Clifford, 1878; Hestenes, 1966).
    - Its size doubles with each floor (1, 2, 4, 8 and on), and each floor's compass sits inside the next one's, so each level inherits the compass below and adds to it.
-   - **A thing uses its floor's plain number plus its floor's turnings, and nothing else.** One rule for every floor (review round 1; Hestenes chose the same part). It gives:
-     - On the point floor, one plain number, so the Higgs gets one number with no exception.
-     - On the plane, the complex plane: one compass, with the turning built in.
-     - On ours, the four-wide numbers. From our floor up, the order of multiplying matters, as the order of turns does.
-     - On the fourth floor, exactly two four-wide numbers, one for each handedness (known math). This is the Oct 16 electron's "second copy," which now falls out of the rule instead of being added. The fourth floor's volume piece is what tells the two handed copies apart (physics calls this chirality). Not yet tested in the core.
+   - **The rule: a thing uses everything its floor's turnings make when multiplied together.** It is one rule for every floor. (In known math this is the "even part" of the compass, the part Hestenes uses.)
+
+   *What the rule gives (results, not extra rules):*
+   - The point floor and the line: one plain number, since a turning needs two directions. So the Higgs gets one number with no exception.
+   - The plane: the complex plane, one compass with its turning built in.
+   - Ours: the four-wide numbers. From our floor up, the order of multiplying matters, as the order of turns does.
+   - The fourth floor: two turnings in separate planes multiply into the volume piece, so the rule takes it in. The result is exactly two four-wide numbers, one for each handedness, told apart by that volume piece (known math; physics calls it chirality). This is the Oct 16 electron's "second copy," which now falls out of the rule instead of being added. Not yet tested in the core.
 
 4. **Turning** (settles issue 2). No one sets how anything turns. A turn is multiplying by a piece of the compass.
    - A thing is turned by multiplying it from one side.

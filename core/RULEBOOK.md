@@ -1,6 +1,6 @@
-# The Strict Core: Rulebook (draft 3, not locked)
+# The Strict Core: Rulebook (locked)
 
-Drafted Oct 16, 2026, evening. This builds model v4.0.0, the compass, which the author approved at 6:57 pm. The rulebook itself is locked only when the core is built and the author approves it.
+Written Oct 16, 2026, evening. This builds model v4.0.0, the compass, which the author approved at 6:57 pm. The core was first locked at 7:14 pm and relocked at the author's go when the referee gained the poke command; `core/LOCK.json` holds the current fingerprint, and the log records every lock.
 
 ## How the core works
 
@@ -11,9 +11,10 @@ The core holds only the rules below, and each rule comes from the model.
 **What it measures.** The core works out the odds and seals them before anyone opens the observed numbers. Then the two are compared.
 
 **Locks and records.**
-- The core is locked by its fingerprint. Any change breaks the fingerprint and needs a new model version with the author's go.
+- The core is locked by its fingerprint. Any change breaks the fingerprint and needs the author's go and a relock; a change to the model's rules also needs a new model version.
 - Every try is written to a log in which each entry carries the fingerprint of the one before it. Editing or deleting a try breaks the chain, and failures are logged like passes.
 - Where the model is silent, the core does not fill the gap. It stops and says "the model doesn't say."
+- **Only logged results count.** Exploring is welcome, but through the referee: `python3 core/referee.py poke NAME` (a trial file) or `poke --json '{...}'` (typed inline) logs every exploratory try, with its input, so the number of tries always shows. The Lean runner can be run on its own, but then it marks its answer "not logged: does not count," and such answers are never reported. Why: trying many inputs privately and showing only the one that fits makes a search look like a prediction (the look-elsewhere effect).
 
 ## Rules
 

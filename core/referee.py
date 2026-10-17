@@ -10,8 +10,13 @@ Everyday language:
   * LOG.    Every try goes into core/log.jsonl, and each entry carries the fingerprint of the
             entry before it, so editing or deleting a try breaks the chain. Failures, stops and
             refusals are logged exactly like passes.
+  * POKE.   `referee.py poke NAME` (a trial file) or `referee.py poke --json '{...}'` (typed inline)
+            asks the core for a prediction and logs it as exploration, input and all. Explore as
+            much as you like, but only through here: only logged results count, so the number of
+            tries always shows. (The runner run on its own marks its answer "not logged".)
   * VERIFY. `referee.py verify` rechecks the whole chain.
-  * REPORT. `referee.py report` lists every trial and every try, so cherry-picking shows.
+  * REPORT. `referee.py report` lists every trial and every try, formal runs and pokes, and
+            counts the tries per kind of particle, so cherry-picking shows.
 
 The referee does no physics. Odds come only from the Lean runner; comparisons use exact fractions.
 """
@@ -92,17 +97,11 @@ def cmd_lock(by):
 
 
 def cmd_run(name):
-    whole, state = lock_state()
-    if state == "CHANGED":
-        print("REFUSED: the core has changed since it was locked. A change needs a new model "
-              "version with the author's go, then a new lock.")
-        sys.exit(2)
-    trial_path = TRIALS / f"{name}.json"
-    trial_bytes = trial_path.read_bytes()
-    out = subprocess.run([str(RUNNER)], input=trial_bytes, capture_output=True, check=True)
-    prediction = json.loads(out.stdout)
-    base = {"trial": name, "trial_sha": sha(trial_bytes), "core": whole, "core_state": state,
-            "model": MODEL, "prediction": prediction}
+    whole, state = refuse_if_changed()
+    trial_bytes = (TRIALS / f"{name}.json").read_bytes()
+    prediction = ask_core(trial_bytes)
+    base = {"trial": name, "trial_sha": sha(trial_bytes), "input": json.loads(trial_bytes),
+            "core": whole, "core_state": state, "model": MODEL, "prediction": prediction}
     if prediction["result"] != "odds":
         e = append(dict(base, kind=prediction["result"]))
         print(f"{name}: {prediction['result'].upper()} -- {prediction.get('reason', '')}  [log #{e['n']}]")
@@ -114,6 +113,45 @@ def cmd_run(name):
     e = append({"kind": "compared", "trial": name, "sealed": sealed["hash"], "observed": obs,
                 "verdict": verdict, "detail": detail, "core": whole, "core_state": state})
     print(f"{name}: {verdict.upper()} -- {detail}  [sealed #{sealed['n']}, compared #{e['n']}]")
+
+
+def ask_core(trial_bytes):
+    out = subprocess.run([str(RUNNER), "--referee"], input=trial_bytes, capture_output=True, check=True)
+    return json.loads(out.stdout)
+
+
+def refuse_if_changed():
+    whole, state = lock_state()
+    if state == "CHANGED":
+        print("REFUSED: the core has changed since it was locked. A change needs the author's go "
+              "and a relock (and a new model version if the rules changed).")
+        sys.exit(2)
+    return whole, state
+
+
+def cmd_poke(args):
+    whole, state = refuse_if_changed()
+    if args and args[0] == "--json":
+        name, trial_bytes = "inline", args[1].encode()
+    else:
+        name, trial_bytes = args[0], (TRIALS / f"{args[0]}.json").read_bytes()
+    try:
+        trial = json.loads(trial_bytes)
+    except json.JSONDecodeError as err:
+        trial = {"unreadable": str(err)}
+    prediction = ask_core(trial_bytes)
+    e = append({"kind": "explore", "trial": name, "trial_sha": sha(trial_bytes), "input": trial,
+                "core": whole, "core_state": state, "model": MODEL, "prediction": prediction})
+    print(f"[explore, log #{e['n']}] {json.dumps(prediction)}")
+
+
+def signature(entry):
+    trial = entry.get("input")
+    if not isinstance(trial, dict):
+        path = TRIALS / f"{entry.get('trial')}.json"   # entries written before inputs were logged
+        trial = json.loads(path.read_text()) if path.exists() else {}
+    p = trial.get("particle", {}) if isinstance(trial.get("particle"), dict) else {}
+    return f"floor {p.get('floor', '?')} {p.get('kind', '?')}"
 
 
 def compare(prediction, obs):
@@ -149,12 +187,21 @@ def cmd_verify():
 
 def cmd_report():
     log = read_log()
-    rows = {}
+    rows, kinds, sealed_input = {}, {}, {}
     for e in log:
+        if e["kind"] == "sealed":
+            sealed_input[e["hash"]] = e
         if "trial" in e and e["kind"] != "sealed":
-            rows.setdefault(e["trial"], []).append(e.get("verdict", e["kind"]))
+            label = e.get("verdict", e["kind"])
+            rows.setdefault(e["trial"], []).append(label)
+            src = sealed_input.get(e.get("sealed"), e)
+            kinds.setdefault(signature(src), []).append(label)
+    print("Every trial, every try (formal runs and pokes):")
     for name, tries in sorted(rows.items()):
-        print(f"{name:32s} tries: {len(tries)}  results: {', '.join(tries)}")
+        print(f"  {name:32s} tries: {len(tries)}  results: {', '.join(tries)}")
+    print("Tries per kind of particle (a high count before a pass means a search, not a prediction):")
+    for sig, tries in sorted(kinds.items()):
+        print(f"  {sig:32s} tries: {len(tries)}  results: {', '.join(tries)}")
 
 
 if __name__ == "__main__":
@@ -166,6 +213,8 @@ if __name__ == "__main__":
     elif args[0] == "run":
         for n in args[1:]:
             cmd_run(n)
+    elif args[0] == "poke":
+        cmd_poke(args[1:])
     elif args[0] == "verify":
         cmd_verify()
     elif args[0] == "report":

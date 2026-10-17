@@ -110,9 +110,15 @@ def evalTrial (t : Json) : Json := Id.run do
 
 end StrictCore.Run
 
-def main : IO Unit := do
+/-- Run on its own, the runner marks its answer as not logged, so it can never pass as a result.
+    The referee calls it with `--referee` and logs every answer. -/
+def markUnlogged (fromReferee : Bool) (j : Lean.Json) : Lean.Json :=
+  if fromReferee then j else j.setObjVal! "logged" "not logged: does not count (run it through core/referee.py)"
+
+def main (args : List String) : IO Unit := do
+  let fromReferee := args.contains "--referee"
   let stdin ← IO.getStdin
   let input ← stdin.readToEnd
   match Lean.Json.parse input with
-  | .error m => IO.println (StrictCore.Run.refuseJ s!"not readable: {m}").compress
-  | .ok t => IO.println (StrictCore.Run.evalTrial t).compress
+  | .error m => IO.println (markUnlogged fromReferee (StrictCore.Run.refuseJ s!"not readable: {m}")).compress
+  | .ok t => IO.println (markUnlogged fromReferee (StrictCore.Run.evalTrial t)).compress

@@ -3,3 +3,5 @@
 -/
 import StrictCore.Compass
 import StrictCore.Facts
+import StrictCore.Measure
+import StrictCore.MeasureFacts

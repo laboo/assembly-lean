@@ -1,0 +1,17 @@
+{
+  "approved_by": "the author (Oct 16, 2026, 7:14 pm)",
+  "files": {
+    "StrictCore.lean": "627d0d6ebb76d4190387116ba2a9bfe6e340e1f69b69c9414a4b0c39b198ce09",
+    "StrictCore/Compass.lean": "38007d86bb6c063d9c7814fcea580aa28968397185a4121d421c55dd6a1d0912",
+    "StrictCore/Facts.lean": "d89ecfe85075531edc87ff38b3243acebe41f0e676e8ec87164d4fc2dad44eda",
+    "StrictCore/Measure.lean": "57fc36052f35a5f98f310287874e23ce86dbd9117993eed7d74bd9c39287c0fc",
+    "StrictCore/MeasureFacts.lean": "c7073013e0a3cfe964334b731dd9a27eff2f5e080fa8e9647ee92f26a3a84cc3",
+    "StrictCore/Run.lean": "1642579db1f9f06864389c3ed63b45376a1d2b26b531ae6218dffd0605dd122d",
+    "core/RULEBOOK.md": "849b10c56f44269d739063fc66ba7a18e63841b82e647b0b19a8150b28d3a6f0",
+    "core/referee.py": "6ccbcd7e97b8f0bea982ff2f19055d4a540488ce3cac0848261a0a436351502d",
+    "lakefile.toml": "742ad839762a1f651730b4f80439eda9ca6c414733651b87c5a6ac58bd7436ef"
+  },
+  "fingerprint": "c38219789609f2effe7a9cbcdc9d4848b2354ded91f127cf81da7b45aa908240",
+  "model": "4.0.0",
+  "time": "2026-10-16T19:14:52-0700"
+}

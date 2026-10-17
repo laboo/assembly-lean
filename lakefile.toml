@@ -82,3 +82,6 @@ name = "ShadowCert"
 
 [[lean_lib]]
 name = "ShadowExamples"
+
+[[lean_lib]]
+name = "StrictCore"
